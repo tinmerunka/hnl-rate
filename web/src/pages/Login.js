@@ -1,16 +1,43 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const HNL_IMAGE = 'https://hns.family/files/images/_resized/0000046088_914_500_cut_withoutgrow.jpg';
 
 function Login() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [focused, setFocused] = useState(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    console.log('Login:', email, password);
-    // ovdje ćemo kasnije pozvati backend endpoint
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await fetch('http://localhost:8080/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (!response.ok) {
+        setError('Pogrešno korisničko ime ili lozinka.');
+        return;
+      }
+
+      const data = await response.json();
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('username', data.username);
+      localStorage.setItem('role', data.role);
+      navigate('/');
+    } catch (err) {
+      setError('Greška pri povezivanju s poslužiteljem.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputStyle = (name) => ({
@@ -150,16 +177,16 @@ function Login() {
                 letterSpacing: '0.12em', textTransform: 'uppercase',
                 color: 'rgba(255,255,255,0.35)', marginBottom: '7px',
               }}>
-                Email
+                Korisničko ime
               </label>
               <input
-                type="email"
-                placeholder="admin@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onFocus={() => setFocused('email')}
+                type="text"
+                placeholder="korisničko ime"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                onFocus={() => setFocused('username')}
                 onBlur={() => setFocused(null)}
-                style={inputStyle('email')}
+                style={inputStyle('username')}
               />
             </div>
 
@@ -182,6 +209,10 @@ function Login() {
               />
             </div>
 
+            {error && (
+              <p style={{ color: '#e63946', fontSize: '12px', margin: '12px 0 0' }}>{error}</p>
+            )}
+
             {/* buttons row */}
             <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
               <button
@@ -202,18 +233,19 @@ function Login() {
               </button>
               <button
                 type="submit"
+                disabled={loading}
                 style={{
                   flex: 1, padding: '13px',
-                  background: '#e63946', border: 'none',
+                  background: loading ? '#a0232b' : '#e63946', border: 'none',
                   borderRadius: '100px',
                   color: '#fff', fontSize: '13px',
-                  fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                  fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
                   transition: 'background 0.15s',
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#c1121f'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = '#e63946'; }}
+                onMouseEnter={(e) => { if (!loading) e.currentTarget.style.background = '#c1121f'; }}
+                onMouseLeave={(e) => { if (!loading) e.currentTarget.style.background = '#e63946'; }}
               >
-                Prijava →
+                {loading ? 'Prijava...' : 'Prijava →'}
               </button>
             </div>
           </form>
