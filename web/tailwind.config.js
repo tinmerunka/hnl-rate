@@ -5,7 +5,10 @@ module.exports = {
     extend: {
       colors: {
         'hnl-red': '#e63946',
+        'hnl-red-dark': '#c1121f',
         'hnl-dark': '#0f1117',
+        'hnl-bg': '#1c1f2e',
+        'hnl-card': '#252838',
       },
     },
   },
