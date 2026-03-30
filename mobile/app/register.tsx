@@ -1,3 +1,4 @@
+import API_BASE_URL from '@/constants/config';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -28,7 +29,7 @@ export default function RegisterScreen() {
 
     setLoading(true);
     try {
-      const response = await fetch('http://192.168.0.17:8080/api/auth/register', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -38,18 +39,27 @@ export default function RegisterScreen() {
         }),
       });
 
-      const data = await response.json();
+      const text = await response.text();
+      console.log('Register response:', response.status, text);
 
       if (!response.ok) {
-        Alert.alert('Registration Failed', data.message ?? 'Could not create account.');
+        let message = 'Could not create account.';
+        try {
+          const data = JSON.parse(text);
+          message = data.message ?? data.error ?? text;
+        } catch {
+          message = text || message;
+        }
+        Alert.alert('Registration Failed', message);
         return;
       }
 
       Alert.alert('Success', 'Account created! Please log in.', [
         { text: 'OK', onPress: () => router.replace('/login') },
       ]);
-    } catch {
-      Alert.alert('Error', 'Could not connect to server. Please try again.');
+    } catch (err) {
+      console.error('Register error:', err);
+      Alert.alert('Error', String(err));
     } finally {
       setLoading(false);
     }

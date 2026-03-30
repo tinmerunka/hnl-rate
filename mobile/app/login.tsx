@@ -1,3 +1,4 @@
+import API_BASE_URL from '@/constants/config';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -26,7 +27,7 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      const response = await fetch('http://192.168.0.17:8080/api/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: username.trim(), password }),
