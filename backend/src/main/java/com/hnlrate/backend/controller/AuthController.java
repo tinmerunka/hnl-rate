@@ -2,6 +2,7 @@ package com.hnlrate.backend.controller;
 
 import com.hnlrate.backend.dto.AuthResponseDTO;
 import com.hnlrate.backend.dto.LoginDTO;
+import com.hnlrate.backend.dto.RefreshTokenRequestDTO;
 import com.hnlrate.backend.dto.RegisterDTO;
 import com.hnlrate.backend.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -25,5 +26,17 @@ public class AuthController {
     public ResponseEntity<AuthResponseDTO> login(@RequestBody LoginDTO dto) {
         AuthResponseDTO response = authService.login(dto);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponseDTO> refresh(@RequestBody RefreshTokenRequestDTO dto) {
+        AuthResponseDTO response = authService.refresh(dto);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@RequestBody RefreshTokenRequestDTO dto) {
+        authService.logout(dto);
+        return ResponseEntity.ok().build();
     }
 }
