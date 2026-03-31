@@ -2,7 +2,9 @@ package com.hnlrate.backend.service;
 
 import com.hnlrate.backend.dto.AuthResponseDTO;
 import com.hnlrate.backend.dto.LoginDTO;
+import com.hnlrate.backend.dto.RefreshTokenRequestDTO;
 import com.hnlrate.backend.dto.RegisterDTO;
+import com.hnlrate.backend.model.RefreshToken;
 import com.hnlrate.backend.model.Role;
 import com.hnlrate.backend.model.User;
 import com.hnlrate.backend.security.JwtService;
@@ -17,6 +19,7 @@ public class AuthService {
     private final UserService userService;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenService refreshTokenService;
 
     public void register(RegisterDTO dto) {
         if (userService.getByEmail(dto.getEmail()).isPresent()) {
@@ -48,8 +51,30 @@ public class AuthService {
             throw new RuntimeException("Pogrešan username ili lozinka!");
         }
 
-        String token = jwtService.generateToken(user.getUsername());
+        String accessToken = jwtService.generateToken(user.getUsername());
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
 
-        return new AuthResponseDTO(token, user.getUsername(), user.getRole().name());
+        return new AuthResponseDTO(accessToken, refreshToken.getToken());
+    }
+
+    public AuthResponseDTO refresh(RefreshTokenRequestDTO dto) {
+        RefreshToken refreshToken = refreshTokenService.findByToken(dto.getRefreshToken())
+                .orElseThrow(() -> new RuntimeException("Refresh token nije pronađen!"));
+
+        if (!refreshTokenService.isValid(refreshToken)) {
+            throw new RuntimeException("Refresh token je istekao ili je nevažeći!");
+        }
+
+        RefreshToken newRefreshToken = refreshTokenService.rotate(refreshToken);
+        String newAccessToken = jwtService.generateToken(newRefreshToken.getUser().getUsername());
+
+        return new AuthResponseDTO(newAccessToken, newRefreshToken.getToken());
+    }
+
+    public void logout(RefreshTokenRequestDTO dto) {
+        RefreshToken refreshToken = refreshTokenService.findByToken(dto.getRefreshToken())
+                .orElseThrow(() -> new RuntimeException("Refresh token nije pronađen!"));
+
+        refreshTokenService.revokeAllUserTokens(refreshToken.getUser());
     }
 }

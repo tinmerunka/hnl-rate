@@ -1,5 +1,6 @@
 package com.hnlrate.backend.security;
 
+import com.hnlrate.backend.model.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,7 +30,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole(Role.ADMIN.toString())
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
