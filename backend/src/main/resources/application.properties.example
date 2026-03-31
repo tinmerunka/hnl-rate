@@ -4,3 +4,9 @@ spring.datasource.password=
 
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
+
+jwt.secret=
+jwt.expiration=86400000
+
+api.football.key=
+api.football.base-url=https://v3.football.api-sports.io
