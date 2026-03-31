@@ -31,7 +31,7 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
-    public String generateToken(String username){
+    public String generateToken(String username) {
         return generateToken(new HashMap<>(), username);
     }
 
