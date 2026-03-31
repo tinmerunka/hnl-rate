@@ -1,9 +1,11 @@
 package com.hnlrate.backend.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "club")
 public class Club {
@@ -11,6 +13,9 @@ public class Club {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
+    @Column(unique = true)
+    private Integer apiFootballId;
 
     @Column(nullable = false)
     private String name;
