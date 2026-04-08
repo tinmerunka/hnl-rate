@@ -1,5 +1,6 @@
 package com.hnlrate.backend.service;
 
+import com.hnlrate.backend.model.Club;
 import com.hnlrate.backend.model.Match;
 import com.hnlrate.backend.repository.MatchRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,10 @@ public class MatchService {
 
     public Optional<Match> getById(Integer id) {
         return matchRepository.findById(id);
+    }
+
+    public List<Match> getByClub(Club club) {
+        return matchRepository.findByHomeClubOrAwayClubOrderByDateAsc(club, club);
     }
 
     public Match save(Match match) {

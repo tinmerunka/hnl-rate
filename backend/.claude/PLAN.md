@@ -77,11 +77,17 @@ Korisnik može ocijeniti **samo igrače iz MatchPlayer tablice** za tu utakmicu.
 - [x] `dto/external/` — DTO-i za parsiranje API odgovora (ApiResponse, TeamDto, VenueDto, TeamResponseItem)
 - [x] `service/SyncService.java` — logika upsertanja klubova
 - [x] `controller/AdminController.java` — `POST /api/admin/sync/clubs` (samo ADMIN)
-- [ ] Sync za igrače, utakmice, postave u SyncService
+- [x] Sync za utakmice u SyncService (`POST /api/admin/sync/matches`)
+- [ ] Sync za igrače, postave u SyncService
 - [ ] `@EnableScheduling` + dnevni `@Scheduled` job za automatski sync
 
 ### Faza 2 — Core read endpointi
 
+- [x] `GET /api/clubs/{id}` — detalji kluba (ClubDTO)
+- [x] `POST /api/clubs/{id}/favorite` — postavi omiljeni klub
+- [x] `DELETE /api/clubs/favorite` — ukloni omiljeni klub
+- [x] `GET /api/user/me` — profil prijavljenog korisnika (UserProfileDTO s favoriteClub)
+- [x] `GET /api/clubs/{id}/matches` — utakmice kluba (past + upcoming), sortirano po datumu
 - [ ] `GET /api/matches` — sve utakmice
 - [ ] `GET /api/matches/{id}` — detalji + prosječne ocjene
 - [ ] `GET /api/matches/round/{round}` — po kolu

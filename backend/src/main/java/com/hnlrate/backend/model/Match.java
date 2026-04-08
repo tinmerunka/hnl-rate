@@ -16,6 +16,9 @@ public class Match {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(unique = true)
+    private Integer apiFootballId;
+
     @ManyToOne
     @JoinColumn(name = "home_club_id", nullable = false)
     private Club homeClub;

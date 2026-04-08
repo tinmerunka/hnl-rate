@@ -1,6 +1,7 @@
 package com.hnlrate.backend.client;
 
 import com.hnlrate.backend.dto.external.ApiResponse;
+import com.hnlrate.backend.dto.external.FixtureResponseItem;
 import com.hnlrate.backend.dto.external.TeamResponseItem;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -31,6 +32,15 @@ public class ApiFootballClient {
     public List<TeamResponseItem> getTeams() {
         ApiResponse<TeamResponseItem> response = restClient.get()
                 .uri("/teams?league={league}&season={season}", leagueId, season)
+                .retrieve()
+                .body(new ParameterizedTypeReference<>() {});
+
+        return response.getResponse();
+    }
+
+    public List<FixtureResponseItem> getFixtures() {
+        ApiResponse<FixtureResponseItem> response = restClient.get()
+                .uri("/fixtures?league={league}&season={season}", leagueId, season)
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {});
 

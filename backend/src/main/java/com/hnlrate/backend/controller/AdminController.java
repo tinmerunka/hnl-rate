@@ -24,4 +24,13 @@ public class AdminController {
                 "klubova", count
         ));
     }
+
+    @PostMapping("/sync/matches")
+    public ResponseEntity<Map<String, Object>> syncMatches() {
+        int count = syncService.syncMatches();
+        return ResponseEntity.ok(Map.of(
+                "poruka", "Sinkronizacija završena",
+                "utakmica", count
+        ));
+    }
 }

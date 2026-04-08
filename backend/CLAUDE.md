@@ -9,6 +9,10 @@ Nakon svake implementirane stavke:
 2. Ažuriraj tablicu implementiranih endpointa u ovom fajlu ako je dodan novi endpoint
 3. Ako je dodan novi model, dodaj ga u tablicu modela
 
+**Nakon svakog korisničkog prompta** (bez obzira radi li se o implementaciji ili pitanju):
+4. Ažuriraj `.claude/PLAN.md` i ovaj fajl da odražavaju trenutno stanje projekta
+5. Ažuriraj memory fajlove u `~/.claude/projects/.../memory/` ako je nešto bitno novo saznato o projektu ili korisniku
+
 ## O projektu
 
 HNL Rate je mobilna aplikacija za navijače koji mogu ocjenjivati HNL utakmice. Backend je Spring Boot REST API.
@@ -71,8 +75,14 @@ src/main/java/com/hnlrate/backend/
 |--------|---------------------------|------------|------|
 | POST   | /api/auth/register        | Ne         | Registracija |
 | POST   | /api/auth/login           | Ne         | Login, vraća JWT |
-| GET    | /api/clubs                | Da         | Dohvati sve klubove |
+| GET    | /api/clubs                | Da         | Dohvati sve klubove (vraća ClubDTO) |
+| GET    | /api/clubs/{id}           | Da         | Detalji kluba |
+| POST   | /api/clubs/{id}/favorite  | Da         | Postavi klub kao omiljeni |
+| DELETE | /api/clubs/favorite       | Da         | Ukloni omiljeni klub |
+| GET    | /api/user/me              | Da         | Profil prijavljenog korisnika |
 | POST   | /api/admin/sync/clubs     | Da (ADMIN) | Sinkronizacija klubova s api-football.com |
+| POST   | /api/admin/sync/matches   | Da (ADMIN) | Sinkronizacija utakmica s api-football.com |
+| GET    | /api/clubs/{id}/matches   | Da         | Sve utakmice kluba (past + upcoming) |
 
 ## Security
 
