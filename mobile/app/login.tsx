@@ -1,4 +1,5 @@
 import API_BASE_URL from '@/constants/config';
+import { useAuth } from '@/context/auth';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -15,6 +16,7 @@ import {
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { login } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -40,7 +42,8 @@ export default function LoginScreen() {
         return;
       }
 
-      // Navigate to main app on success
+      const token = data.accessToken ?? data.token;
+      await login(token);
       router.replace('/(tabs)');
     } catch {
       Alert.alert('Error', 'Could not connect to server. Please try again.');

@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep:*)",
+      "Bash(grep -r \"state\\\\|context\\\\|provider\\\\|redux\\\\|auth\\\\|jwt\\\\|token\" /c/Users/meri4/Desktop/OICAR/hnl-rate/mobile --include=*.ts --include=*.tsx --include=*.js --exclude-dir=node_modules)",
+      "Bash(npx expo:*)",
+      "Bash(npx tsc:*)"
+    ]
+  }
+}
