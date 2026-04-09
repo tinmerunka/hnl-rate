@@ -5,26 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9b2bd72d-56f1-4f89-b7b0-bf3a48e1843d" name="Changes" comment="test">
-      <change beforePath="$PROJECT_DIR$/.claude/PLAN.md" beforeDir="false" afterPath="$PROJECT_DIR$/.claude/PLAN.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CLAUDE.md" beforeDir="false" afterPath="$PROJECT_DIR$/CLAUDE.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/client/ApiFootballClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/client/ApiFootballClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/controller/AdminController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/controller/AdminController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/controller/ClubController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/controller/ClubController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/model/Match.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/model/Match.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/repository/MatchRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/repository/MatchRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/MatchService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/MatchService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/SyncService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/SyncService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/UserService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mobile/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/app.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mobile/app/(tabs)/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/app/(tabs)/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mobile/app/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/app/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mobile/app/login.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/app/login.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mobile/expo-env.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/expo-env.d.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mobile/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mobile/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../web/src/App.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../web/src/App.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../web/src/pages/LandingPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../web/src/pages/LandingPage.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../web/src/pages/Login.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../web/src/pages/Login.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/data_source_mapping.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/data_source_mapping.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -80,37 +63,37 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
-    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
-    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
-    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;Spring Boot.BackendApplication.executor&quot;: &quot;Run&quot;,
-    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;feature/web-clubs&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/meri4/Desktop/OICAR/hnl-rate/backend&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "Spring Boot.BackendApplication.executor": "Run",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "chore/env-config",
+    "ignore.virus.scanning.warn.message": "true",
+    "junie.onboarding.icon.badge.shown": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/meri4/Desktop/OICAR/hnl-rate/backend",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "to.speed.mode.migration.done": "true",
+    "vue.rearranger.settings.migration": "true"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;DatabaseDriversLRU&quot;: [
-      &quot;postgresql&quot;
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "postgresql"
     ]
   }
-}</component>
+}]]></component>
   <component name="RunManager">
     <configuration name="BackendApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
