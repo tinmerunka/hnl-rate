@@ -1,5 +1,4 @@
 target/
-.env
 *.jar
 .idea/
 application.properties
