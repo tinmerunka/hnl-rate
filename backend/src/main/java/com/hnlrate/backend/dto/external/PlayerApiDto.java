@@ -4,12 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ApiResponse<T> {
-    private List<T> response;
-    private PagingDto paging;
+public class PlayerApiDto {
+    private Integer id;
+    private String firstname;
+    private String lastname;
 }

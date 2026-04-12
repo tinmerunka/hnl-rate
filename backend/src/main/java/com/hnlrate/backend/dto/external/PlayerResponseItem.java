@@ -9,7 +9,7 @@ import java.util.List;
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ApiResponse<T> {
-    private List<T> response;
-    private PagingDto paging;
+public class PlayerResponseItem {
+    private PlayerApiDto player;
+    private List<PlayerStatisticsDto> statistics;
 }

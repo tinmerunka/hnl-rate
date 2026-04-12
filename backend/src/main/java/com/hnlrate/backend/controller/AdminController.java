@@ -1,11 +1,21 @@
 package com.hnlrate.backend.controller;
 
-import com.hnlrate.backend.service.SyncService;
+import com.hnlrate.backend.dto.ClubDTO;
+import com.hnlrate.backend.dto.MatchDTO;
+import com.hnlrate.backend.dto.PlayerDTO;
+import com.hnlrate.backend.dto.RefereeDTO;
+import com.hnlrate.backend.dto.request.ClubRequest;
+import com.hnlrate.backend.dto.request.MatchRequest;
+import com.hnlrate.backend.dto.request.PlayerRequest;
+import com.hnlrate.backend.dto.request.RefereeRequest;
+import com.hnlrate.backend.model.Club;
+import com.hnlrate.backend.model.Match;
+import com.hnlrate.backend.model.Player;
+import com.hnlrate.backend.model.Referee;
+import com.hnlrate.backend.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -15,22 +25,171 @@ import java.util.Map;
 public class AdminController {
 
     private final SyncService syncService;
+    private final ClubService clubService;
+    private final MatchService matchService;
+    private final PlayerService playerService;
+    private final RefereeService refereeService;
+
+    // ── Sync ────────────────────────────────────────────────────────────────
 
     @PostMapping("/sync/clubs")
     public ResponseEntity<Map<String, Object>> syncClubs() {
         int count = syncService.syncClubs();
-        return ResponseEntity.ok(Map.of(
-                "poruka", "Sinkronizacija završena",
-                "klubova", count
-        ));
+        return ResponseEntity.ok(Map.of("poruka", "Sinkronizacija završena", "klubova", count));
     }
 
     @PostMapping("/sync/matches")
     public ResponseEntity<Map<String, Object>> syncMatches() {
         int count = syncService.syncMatches();
-        return ResponseEntity.ok(Map.of(
-                "poruka", "Sinkronizacija završena",
-                "utakmica", count
-        ));
+        return ResponseEntity.ok(Map.of("poruka", "Sinkronizacija završena", "utakmica", count));
+    }
+
+    @PostMapping("/sync/players")
+    public ResponseEntity<Map<String, Object>> syncPlayers() {
+        int count = syncService.syncPlayers();
+        return ResponseEntity.ok(Map.of("poruka", "Sinkronizacija završena", "igraca", count));
+    }
+
+    // ── Clubs ────────────────────────────────────────────────────────────────
+
+    @PostMapping("/clubs")
+    public ResponseEntity<ClubDTO> createClub(@RequestBody ClubRequest req) {
+        Club club = new Club();
+        club.setName(req.getName());
+        club.setCity(req.getCity());
+        club.setLogoUrl(req.getLogoUrl());
+        return ResponseEntity.ok(new ClubDTO(clubService.save(club)));
+    }
+
+    @PutMapping("/clubs/{id}")
+    public ResponseEntity<ClubDTO> updateClub(@PathVariable Integer id, @RequestBody ClubRequest req) {
+        Club club = clubService.getById(id)
+                .orElseThrow(() -> new RuntimeException("Klub nije pronađen"));
+        if (req.getName() != null) club.setName(req.getName());
+        if (req.getCity() != null) club.setCity(req.getCity());
+        if (req.getLogoUrl() != null) club.setLogoUrl(req.getLogoUrl());
+        return ResponseEntity.ok(new ClubDTO(clubService.save(club)));
+    }
+
+    @DeleteMapping("/clubs/{id}")
+    public ResponseEntity<Void> deleteClub(@PathVariable Integer id) {
+        clubService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ── Matches ──────────────────────────────────────────────────────────────
+
+    @PostMapping("/matches")
+    public ResponseEntity<MatchDTO> createMatch(@RequestBody MatchRequest req) {
+        Club home = clubService.getById(req.getHomeClubId())
+                .orElseThrow(() -> new RuntimeException("Domaćin nije pronađen"));
+        Club away = clubService.getById(req.getAwayClubId())
+                .orElseThrow(() -> new RuntimeException("Gost nije pronađen"));
+
+        Match match = new Match();
+        match.setHomeClub(home);
+        match.setAwayClub(away);
+        match.setRound(req.getRound());
+        match.setDate(req.getDate());
+        match.setResult(req.getResult());
+        match.setFinished(req.getFinished() != null ? req.getFinished() : false);
+
+        if (req.getRefereeId() != null) {
+            refereeService.getById(req.getRefereeId()).ifPresent(match::setReferee);
+        }
+
+        return ResponseEntity.ok(new MatchDTO(matchService.save(match)));
+    }
+
+    @PutMapping("/matches/{id}")
+    public ResponseEntity<MatchDTO> updateMatch(@PathVariable Integer id, @RequestBody MatchRequest req) {
+        Match match = matchService.getById(id)
+                .orElseThrow(() -> new RuntimeException("Utakmica nije pronađena"));
+
+        if (req.getHomeClubId() != null) {
+            clubService.getById(req.getHomeClubId()).ifPresent(match::setHomeClub);
+        }
+        if (req.getAwayClubId() != null) {
+            clubService.getById(req.getAwayClubId()).ifPresent(match::setAwayClub);
+        }
+        if (req.getRefereeId() != null) {
+            refereeService.getById(req.getRefereeId()).ifPresent(match::setReferee);
+        }
+        if (req.getRound() != null) match.setRound(req.getRound());
+        if (req.getDate() != null) match.setDate(req.getDate());
+        if (req.getResult() != null) match.setResult(req.getResult());
+        if (req.getFinished() != null) match.setFinished(req.getFinished());
+
+        return ResponseEntity.ok(new MatchDTO(matchService.save(match)));
+    }
+
+    @DeleteMapping("/matches/{id}")
+    public ResponseEntity<Void> deleteMatch(@PathVariable Integer id) {
+        matchService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ── Players ──────────────────────────────────────────────────────────────
+
+    @PostMapping("/players")
+    public ResponseEntity<PlayerDTO> createPlayer(@RequestBody PlayerRequest req) {
+        Club club = clubService.getById(req.getClubId())
+                .orElseThrow(() -> new RuntimeException("Klub nije pronađen"));
+
+        Player player = new Player();
+        player.setFirstName(req.getFirstName());
+        player.setLastName(req.getLastName());
+        player.setPosition(req.getPosition());
+        player.setNumber(req.getNumber());
+        player.setClub(club);
+
+        return ResponseEntity.ok(new PlayerDTO(playerService.save(player)));
+    }
+
+    @PutMapping("/players/{id}")
+    public ResponseEntity<PlayerDTO> updatePlayer(@PathVariable Integer id, @RequestBody PlayerRequest req) {
+        Player player = playerService.getById(id)
+                .orElseThrow(() -> new RuntimeException("Igrač nije pronađen"));
+
+        if (req.getFirstName() != null) player.setFirstName(req.getFirstName());
+        if (req.getLastName() != null) player.setLastName(req.getLastName());
+        if (req.getPosition() != null) player.setPosition(req.getPosition());
+        if (req.getNumber() != null) player.setNumber(req.getNumber());
+        if (req.getClubId() != null) {
+            clubService.getById(req.getClubId()).ifPresent(player::setClub);
+        }
+
+        return ResponseEntity.ok(new PlayerDTO(playerService.save(player)));
+    }
+
+    @DeleteMapping("/players/{id}")
+    public ResponseEntity<Void> deletePlayer(@PathVariable Integer id) {
+        playerService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ── Referees ─────────────────────────────────────────────────────────────
+
+    @PostMapping("/referees")
+    public ResponseEntity<RefereeDTO> createReferee(@RequestBody RefereeRequest req) {
+        Referee referee = new Referee();
+        referee.setFirstName(req.getFirstName());
+        referee.setLastName(req.getLastName());
+        return ResponseEntity.ok(new RefereeDTO(refereeService.save(referee)));
+    }
+
+    @PutMapping("/referees/{id}")
+    public ResponseEntity<RefereeDTO> updateReferee(@PathVariable Integer id, @RequestBody RefereeRequest req) {
+        Referee referee = refereeService.getById(id)
+                .orElseThrow(() -> new RuntimeException("Sudac nije pronađen"));
+        if (req.getFirstName() != null) referee.setFirstName(req.getFirstName());
+        if (req.getLastName() != null) referee.setLastName(req.getLastName());
+        return ResponseEntity.ok(new RefereeDTO(refereeService.save(referee)));
+    }
+
+    @DeleteMapping("/referees/{id}")
+    public ResponseEntity<Void> deleteReferee(@PathVariable Integer id) {
+        refereeService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

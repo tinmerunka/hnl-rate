@@ -1,13 +1,12 @@
 package com.hnlrate.backend.client;
 
-import com.hnlrate.backend.dto.external.ApiResponse;
-import com.hnlrate.backend.dto.external.FixtureResponseItem;
-import com.hnlrate.backend.dto.external.TeamResponseItem;
+import com.hnlrate.backend.dto.external.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -45,5 +44,27 @@ public class ApiFootballClient {
                 .body(new ParameterizedTypeReference<>() {});
 
         return response.getResponse();
+    }
+
+    public List<PlayerResponseItem> getPlayers() {
+        List<PlayerResponseItem> all = new ArrayList<>();
+        int page = 1;
+
+        while (true) {
+            ApiResponse<PlayerResponseItem> response = restClient.get()
+                    .uri("/players?league={league}&season={season}&page={page}", leagueId, season, page)
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<>() {});
+
+            if (response == null || response.getResponse() == null || response.getResponse().isEmpty()) break;
+
+            all.addAll(response.getResponse());
+
+            PagingDto paging = response.getPaging();
+            if (paging == null || page >= paging.getTotal()) break;
+            page++;
+        }
+
+        return all;
     }
 }
