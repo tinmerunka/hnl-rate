@@ -3,7 +3,8 @@
     "allow": [
       "WebFetch(domain:www.api-football.com)",
       "WebFetch(domain:api-sports.io)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(./mvnw compile:*)"
     ]
   }
 }

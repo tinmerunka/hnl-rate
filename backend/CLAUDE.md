@@ -26,7 +26,7 @@ HNL Rate je mobilna aplikacija za navijače koji mogu ocjenjivati HNL utakmice. 
 ## Tech Stack
 
 - **Java 21** + **Spring Boot 4.0.3**
-- **PostgreSQL 15** (Docker)
+- **PostgreSQL** (Supabase — produkcijska baza u cloudu)
 - **Spring Security** + **JWT** (JJWT 0.11.5, HS256, 24h expiry)
 - **Spring Data JPA** (Hibernate, DDL auto: update)
 - **Lombok**
@@ -34,14 +34,11 @@ HNL Rate je mobilna aplikacija za navijače koji mogu ocjenjivati HNL utakmice. 
 ## Pokretanje
 
 ```bash
-# Pokreni bazu
-docker-compose up -d
-
-# Pokreni aplikaciju
+# Pokreni aplikaciju (baza je Supabase, nema potrebe za lokalnim Dockerom)
 ./mvnw spring-boot:run
 ```
 
-Baza: `localhost:5432/hnlrate`, user: `postgres`, pass: `postgres`
+Sve varijable okoline su u `.env` fajlu (nije u gitu). Baza: Supabase (aws-eu-central-1).
 
 ## Struktura projekta
 
@@ -71,18 +68,37 @@ src/main/java/com/hnlrate/backend/
 
 ## Implementirani endpointi
 
-| Metoda | URL                       | Auth       | Opis |
-|--------|---------------------------|------------|------|
-| POST   | /api/auth/register        | Ne         | Registracija |
-| POST   | /api/auth/login           | Ne         | Login, vraća JWT |
-| GET    | /api/clubs                | Da         | Dohvati sve klubove (vraća ClubDTO) |
-| GET    | /api/clubs/{id}           | Da         | Detalji kluba |
-| POST   | /api/clubs/{id}/favorite  | Da         | Postavi klub kao omiljeni |
-| DELETE | /api/clubs/favorite       | Da         | Ukloni omiljeni klub |
-| GET    | /api/user/me              | Da         | Profil prijavljenog korisnika |
-| POST   | /api/admin/sync/clubs     | Da (ADMIN) | Sinkronizacija klubova s api-football.com |
-| POST   | /api/admin/sync/matches   | Da (ADMIN) | Sinkronizacija utakmica s api-football.com |
-| GET    | /api/clubs/{id}/matches   | Da         | Sve utakmice kluba (past + upcoming) |
+| Metoda | URL                        | Auth       | Opis |
+|--------|----------------------------|------------|------|
+| POST   | /api/auth/register         | Ne         | Registracija |
+| POST   | /api/auth/login            | Ne         | Login, vraća JWT |
+| GET    | /api/clubs                 | Da         | Dohvati sve klubove |
+| GET    | /api/clubs/{id}            | Da         | Detalji kluba |
+| POST   | /api/clubs/{id}/favorite   | Da         | Postavi klub kao omiljeni |
+| DELETE | /api/clubs/favorite        | Da         | Ukloni omiljeni klub |
+| GET    | /api/clubs/{id}/matches    | Da         | Sve utakmice kluba |
+| GET    | /api/user/me               | Da         | Profil prijavljenog korisnika |
+| GET    | /api/matches               | Da         | Sve utakmice (?round=N, ?finished=true) |
+| GET    | /api/matches/{id}          | Da         | Detalji utakmice (s refereeom) |
+| GET    | /api/players               | Da         | Svi igrači (?clubId=N) |
+| GET    | /api/players/{id}          | Da         | Detalji igrača |
+| GET    | /api/referees              | Da         | Svi suci |
+| GET    | /api/referees/{id}         | Da         | Detalji suca |
+| POST   | /api/admin/sync/clubs      | Da (ADMIN) | Sinkronizacija klubova s api-football |
+| POST   | /api/admin/sync/matches    | Da (ADMIN) | Sinkronizacija utakmica + sudaca s api-football |
+| POST   | /api/admin/sync/players    | Da (ADMIN) | Sinkronizacija igrača s api-football (paginirano) |
+| POST   | /api/admin/clubs           | Da (ADMIN) | Kreiraj klub |
+| PUT    | /api/admin/clubs/{id}      | Da (ADMIN) | Ažuriraj klub |
+| DELETE | /api/admin/clubs/{id}      | Da (ADMIN) | Obriši klub |
+| POST   | /api/admin/matches         | Da (ADMIN) | Kreiraj utakmicu |
+| PUT    | /api/admin/matches/{id}    | Da (ADMIN) | Ažuriraj utakmicu (rezultat, sudac…) |
+| DELETE | /api/admin/matches/{id}    | Da (ADMIN) | Obriši utakmicu |
+| POST   | /api/admin/players         | Da (ADMIN) | Kreiraj igrača |
+| PUT    | /api/admin/players/{id}    | Da (ADMIN) | Ažuriraj igrača |
+| DELETE | /api/admin/players/{id}    | Da (ADMIN) | Obriši igrača |
+| POST   | /api/admin/referees        | Da (ADMIN) | Kreiraj suca |
+| PUT    | /api/admin/referees/{id}   | Da (ADMIN) | Ažuriraj suca |
+| DELETE | /api/admin/referees/{id}   | Da (ADMIN) | Obriši suca |
 
 ## Security
 
@@ -91,7 +107,7 @@ src/main/java/com/hnlrate/backend/
 - **Ostalo**: zahtijeva JWT (`Authorization: Bearer <token>`)
 - CORS dopušten s `http://localhost:3000`
 - CSRF onemogućen, sesije stateless
-- JWT secret: hardcoded hex string (treba prebaciti u env varijablu!)
+- JWT secret: u `.env` kao `JWT_SECRET` env varijabla ✓
 - Blokirani korisnici ne mogu se prijaviti (provjerava se u JwtAuthFilter)
 
 ## Vanjski API — api-football.com
@@ -121,22 +137,16 @@ GET /standings?league={id}&season=2025      → ljestvica
 
 ## TODO — Endpointi koji nedostaju
 
-- [ ] `/api/matches` — lista utakmica (po kolu, po klubu, završene/nadolazeće)
-- [ ] `/api/matches/{id}` — detalji utakmice
 - [ ] `/api/matches/{id}/rate` — ocijeni utakmicu (MatchRating)
 - [ ] `/api/matches/{id}/rate-referee` — ocijeni suca (RefereeRating)
 - [ ] `/api/matches/{id}/rate-atmosphere` — ocijeni atmosferu (AtmosphereRating)
 - [ ] `/api/matches/{id}/rate-players` — ocijeni igrača (PlayerRating)
-- [ ] `/api/clubs` — detalji kluba, igrači kluba
-- [ ] `/api/players/{id}` — profil igrača, prosjek ocjena
-- [ ] `/api/admin/**` — admin upravljanje (blokiranje usera)
-- [x] `/api/admin/sync/clubs` — sinkronizacija klubova s api-football ✓
-- [ ] `/api/admin/sync/players` — sinkronizacija igrača
-- [ ] `/api/admin/sync/matches` — sinkronizacija utakmica i postava
+- [ ] `/api/players/{id}` — prosjek ocjena igrača
+- [ ] `/api/admin/**` — blokiranje korisnika
 
 ## Napomene
 
 - Error poruke su na hrvatskom
-- JWT secret je u `application.properties` (izvučen iz koda)
-- `application.properties` je u `.gitignore`, koristi `application.properties.example` kao template
+- Sve tajne (JWT, DB, API key) su u `.env` fajlu koji Spring Boot čita automatski — NE commitati!
+- `application.properties` koristi `${VAR_NAME}` syntax za env varijable
 - DDL auto: `update` — OK za razvoj, za produkciju koristiti Flyway/Liquibase

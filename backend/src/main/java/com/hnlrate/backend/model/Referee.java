@@ -14,7 +14,7 @@ public class Referee {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = true)
     private Integer apiFootballId;
 
     @Column(nullable = false)
