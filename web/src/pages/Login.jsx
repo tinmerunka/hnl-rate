@@ -21,7 +21,7 @@ function Login() {
     try {
       const data = await loginService(username, password);
       login(data);
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       setError('Greška pri povezivanju s poslužiteljem.');
     } finally {

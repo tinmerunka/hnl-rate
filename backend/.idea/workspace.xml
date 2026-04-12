@@ -5,17 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9b2bd72d-56f1-4f89-b7b0-bf3a48e1843d" name="Changes" comment="test">
-      <change beforePath="$PROJECT_DIR$/.claude/settings.local.json" beforeDir="false" afterPath="$PROJECT_DIR$/.claude/settings.local.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CLAUDE.md" beforeDir="false" afterPath="$PROJECT_DIR$/CLAUDE.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/client/ApiFootballClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/client/ApiFootballClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/controller/AdminController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/controller/AdminController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/dto/MatchDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/dto/MatchDTO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/dto/external/ApiResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/dto/external/ApiResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/model/Referee.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/model/Referee.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/repository/PlayerRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/repository/PlayerRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/repository/RefereeRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/repository/RefereeRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/SyncService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/SyncService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -83,7 +73,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "Spring Boot.BackendApplication.executor": "Run",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "feature/backend-matches",
+    "git-widget-placeholder": "feature/web-crud1",
     "ignore.virus.scanning.warn.message": "true",
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
