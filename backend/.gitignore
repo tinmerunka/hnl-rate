@@ -3,4 +3,3 @@ target/
 *.jar
 .idea/
 application.properties
-.env
