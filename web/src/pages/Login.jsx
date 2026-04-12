@@ -28,10 +28,20 @@ function Login() {
       }
 
       const data = await response.json();
+<<<<<<< Updated upstream
       localStorage.setItem('token', data.token);
       localStorage.setItem('username', data.username);
       localStorage.setItem('role', data.role);
       navigate('/');
+=======
+      const payload = JSON.parse(atob(data.accessToken.split('.')[1]));
+
+      localStorage.setItem('token', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      localStorage.setItem('username', payload.sub);
+
+      navigate('/klubovi');
+>>>>>>> Stashed changes
     } catch (err) {
       setError('Greška pri povezivanju s poslužiteljem.');
     } finally {
