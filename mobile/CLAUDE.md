@@ -45,13 +45,15 @@ mobile/
 │   ├── login.tsx           # Login ekran
 │   ├── register.tsx        # Registracija ekran
 │   ├── club/
-│   │   └── [id].tsx        # Detalji kluba + postavi/ukloni omiljeni
+│   │   └── [id].tsx        # Detalji kluba + kompaktne kartice utakmica
+│   ├── match/
+│   │   └── [id].tsx        # Detalji utakmice (rezultat, sudac, igrači)
 │   └── (tabs)/
 │       ├── _layout.tsx     # Tab navigator
 │       ├── index.tsx       # Home ekran (profil, omiljeni klub, pretraga kluba po ID-u)
 │       └── explore.tsx     # Explore ekran (placeholder)
 ├── context/
-│   └── auth.tsx            # AuthContext — JWT pohrana, UserProfile state
+│   └── auth.tsx            # AuthContext — JWT pohrana, UserProfile/Referee/Player state
 ├── services/
 │   └── api.ts              # Sve API funkcije (typed)
 └── constants/
@@ -75,7 +77,9 @@ mobile/
 | Registracija                  | `/register`             | Kreiranje novog računa |
 | Clubs (tab 1)                 | `/(tabs)`               | Lista svih klubova, pretraga po imenu, toggle omiljenog (srce) |
 | Profile (tab 2)               | `/(tabs)/profile`       | Profil korisnika, omiljeni klub, logout |
-| Detalji kluba                 | `/club/[id]`            | Crest, podaci kluba, postavi/ukloni omiljeni |
+| Detalji kluba                 | `/club/[id]`            | Kompaktni hero, toggle omiljenog, filter Upcoming/Past, istaknuta sljedeća utakmica |
+| Detalji utakmice (prošle)     | `/match/[id]`           | Rezultat, sudac, igrači doma i gosta (dva stupca) |
+| Detalji utakmice (nadolazeće) | `/match/[id]`           | Kolo, datum, sudac, stadion — bez igrača |
 
 ## Implementirani API pozivi
 
@@ -86,6 +90,8 @@ mobile/
 | `getClub`           | GET    | `/api/clubs/{id}`          | Detalji kluba |
 | `setFavoriteClub`   | POST   | `/api/clubs/{id}/favorite` | Postavi omiljeni klub |
 | `removeFavoriteClub`| DELETE | `/api/clubs/favorite`      | Ukloni omiljeni klub |
+| `getMatch`          | GET    | `/api/matches/{id}`        | Detalji utakmice (sa sucem) |
+| `getPlayersByClub`  | GET    | `/api/players?clubId={id}` | Igrači kluba |
 
 ## Tipovi (TypeScript)
 
@@ -96,6 +102,17 @@ interface Club {
   address?, website?, founded?, venue?
 }
 
+interface Referee { id, firstName, lastName }
+
+interface Player {
+  id, firstName, lastName, position?, number?, club: Club
+}
+
+interface Match {
+  id, homeClub: Club, awayClub: Club, referee?: Referee | null,
+  round, date, result: string | null, finished
+}
+
 interface UserProfile {
   id, username, email, favoriteClub: Club | null
 }
@@ -104,7 +121,7 @@ interface UserProfile {
 ## TODO — Ekrani i funkcionalnosti koje nedostaju
 
 - [ ] Lista utakmica (po kolu, po klubu, završene/nadolazeće)
-- [ ] Detalji utakmice
+- [x] Detalji utakmice
 - [ ] Ocjenjivanje utakmice (MatchRating)
 - [ ] Ocjenjivanje suca (RefereeRating)
 - [ ] Ocjenjivanje atmosfere (AtmosphereRating)

@@ -15,6 +15,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+type Filter = 'upcoming' | 'past';
+
 export default function ClubDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -26,18 +28,27 @@ export default function ClubDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [matchesLoading, setMatchesLoading] = useState(true);
   const [toggling, setToggling] = useState(false);
+  const [filter, setFilter] = useState<Filter>('upcoming');
 
   const clubId = parseInt(id, 10);
   const isFavorite = userProfile?.favoriteClub?.id === clubId;
 
+  // Upcoming: sorted nearest-first
+  const upcomingMatches = useMemo(
+    () =>
+      matches
+        .filter((m) => !m.finished)
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
+    [matches]
+  );
+  // Past: most-recent first
   const pastMatches = useMemo(
     () => matches.filter((m) => m.finished).reverse(),
     [matches]
   );
-  const upcomingMatches = useMemo(
-    () => matches.filter((m) => !m.finished),
-    [matches]
-  );
+
+  const nextMatch = upcomingMatches[0] ?? null;
+  const otherUpcoming = upcomingMatches.slice(1);
 
   useEffect(() => {
     if (!token) return;
@@ -49,7 +60,7 @@ export default function ClubDetailScreen() {
 
     getClubMatches(clubId, token)
       .then(setMatches)
-      .catch(() => {/* silently show empty */})
+      .catch(() => {})
       .finally(() => setMatchesLoading(false));
   }, [clubId, token]);
 
@@ -105,7 +116,7 @@ export default function ClubDetailScreen() {
         <Ionicons name="chevron-back" size={22} color="#FFFFFF" />
       </TouchableOpacity>
 
-      {/* Hero */}
+      {/* Compact hero */}
       <View style={styles.hero}>
         {logoUri ? (
           <Image source={{ uri: logoUri }} style={styles.crest} contentFit="contain" />
@@ -116,79 +127,68 @@ export default function ClubDetailScreen() {
             </Text>
           </View>
         )}
-        <Text style={styles.clubName}>{club.name}</Text>
-        {club.shortName && <Text style={styles.shortName}>{club.shortName}</Text>}
-      </View>
-
-      {/* Info */}
-      <View style={styles.card}>
-        {club.tla && <DetailRow icon="text-outline" label="TLA" value={club.tla} />}
-        {club.founded && (
-          <DetailRow icon="calendar-outline" label="Founded" value={String(club.founded)} last={!club.venue && !club.address && !club.website} />
-        )}
-        {club.venue && (
-          <DetailRow icon="location-outline" label="Venue" value={club.venue} last={!club.address && !club.website} />
-        )}
-        {club.address && (
-          <DetailRow icon="map-outline" label="Address" value={club.address} last={!club.website} />
-        )}
-        {club.website && (
-          <DetailRow icon="globe-outline" label="Website" value={club.website} last />
-        )}
-      </View>
-
-      {/* Favorite */}
-      <TouchableOpacity
-        style={[styles.favBtn, isFavorite && styles.favBtnActive, toggling && styles.btnDisabled]}
-        onPress={toggleFavorite}
-        disabled={toggling}
-        activeOpacity={0.8}>
-        {toggling ? (
-          <ActivityIndicator color={isFavorite ? '#CC0000' : '#FFFFFF'} />
-        ) : (
-          <>
+        <View style={styles.heroText}>
+          <Text style={styles.clubName} numberOfLines={1}>{club.name}</Text>
+          {(club.shortName || club.tla) && (
+            <Text style={styles.clubMeta}>
+              {[club.shortName, club.tla].filter(Boolean).join(' · ')}
+            </Text>
+          )}
+        </View>
+        <TouchableOpacity
+          style={[styles.favIcon, toggling && styles.btnDisabled]}
+          onPress={toggleFavorite}
+          disabled={toggling}
+          activeOpacity={0.7}>
+          {toggling ? (
+            <ActivityIndicator size="small" color="#CC0000" />
+          ) : (
             <Ionicons
               name={isFavorite ? 'heart' : 'heart-outline'}
-              size={18}
-              color={isFavorite ? '#CC0000' : '#FFFFFF'}
+              size={24}
+              color={isFavorite ? '#CC0000' : '#555555'}
             />
-            <Text style={[styles.favBtnText, isFavorite && styles.favBtnTextActive]}>
-              {isFavorite ? 'Remove from favorites' : 'Set as favorite'}
-            </Text>
-          </>
-        )}
-      </TouchableOpacity>
+          )}
+        </TouchableOpacity>
+      </View>
 
-      {/* Matches */}
+      {/* Filter tabs */}
+      <View style={styles.filterRow}>
+        {(['upcoming', 'past'] as Filter[]).map((f) => (
+          <TouchableOpacity
+            key={f}
+            style={[styles.filterTab, filter === f && styles.filterTabActive]}
+            onPress={() => setFilter(f)}
+            activeOpacity={0.7}>
+            <Text style={[styles.filterTabText, filter === f && styles.filterTabTextActive]}>
+              {f === 'upcoming' ? 'Upcoming' : 'Past'}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* Match list */}
       {matchesLoading ? (
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>MATCHES</Text>
-          <ActivityIndicator color="#CC0000" style={{ marginTop: 12 }} />
-        </View>
+        <ActivityIndicator color="#CC0000" style={{ marginTop: 24 }} />
+      ) : filter === 'upcoming' ? (
+        <>
+          {nextMatch && (
+            <FeaturedMatchCard match={nextMatch} />
+          )}
+          {otherUpcoming.map((m) => (
+            <MatchCard key={m.id} match={m} clubId={clubId} />
+          ))}
+          {upcomingMatches.length === 0 && (
+            <EmptyState text="No upcoming matches scheduled." />
+          )}
+        </>
       ) : (
         <>
-          {upcomingMatches.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionLabel}>UPCOMING MATCHES</Text>
-              {upcomingMatches.map((m) => (
-                <MatchCard key={m.id} match={m} clubId={clubId} />
-              ))}
-            </View>
-          )}
-
-          {pastMatches.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionLabel}>PAST MATCHES</Text>
-              {pastMatches.map((m) => (
-                <MatchCard key={m.id} match={m} clubId={clubId} />
-              ))}
-            </View>
-          )}
-
-          {matches.length === 0 && (
-            <View style={styles.emptyMatches}>
-              <Text style={styles.emptyMatchesText}>No matches available.</Text>
-            </View>
+          {pastMatches.map((m) => (
+            <MatchCard key={m.id} match={m} clubId={clubId} />
+          ))}
+          {pastMatches.length === 0 && (
+            <EmptyState text="No past matches available." />
           )}
         </>
       )}
@@ -196,101 +196,198 @@ export default function ClubDetailScreen() {
   );
 }
 
-function MatchCard({ match, clubId }: { match: Match; clubId: number }) {
-  const isHome = match.homeClub.id === clubId;
-  const opponent = isHome ? match.awayClub : match.homeClub;
-  const opponentLogo = opponent.crest ?? opponent.logoUrl;
+/* ── Featured "Next Match" card ─────────────────────────────── */
+
+function FeaturedMatchCard({ match }: { match: Match }) {
+  const router = useRouter();
+
+  const homeLogo = match.homeClub.crest ?? match.homeClub.logoUrl;
+  const awayLogo = match.awayClub.crest ?? match.awayClub.logoUrl;
 
   const date = new Date(match.date);
   const dateStr = date.toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
+    weekday: 'short', day: 'numeric', month: 'long', year: 'numeric',
   });
 
-  const [homScore, awayScore] = match.result ? match.result.split('-') : [null, null];
-  const currentClubScore = isHome ? homScore : awayScore;
-  const opponentScore = isHome ? awayScore : homScore;
-
-  const won = match.finished && currentClubScore !== null && opponentScore !== null
-    ? parseInt(currentClubScore) > parseInt(opponentScore)
-    : null;
-  const drew = match.finished && currentClubScore !== null && opponentScore !== null
-    ? parseInt(currentClubScore) === parseInt(opponentScore)
-    : null;
-
   return (
-    <View style={matchStyles.card}>
-      <View style={matchStyles.topRow}>
-        <Text style={matchStyles.round}>Round {match.round}</Text>
-        <Text style={matchStyles.date}>{dateStr}</Text>
+    <TouchableOpacity
+      style={feat.card}
+      onPress={() => router.push(`/match/${match.id}` as any)}
+      activeOpacity={0.75}>
+
+      <View style={feat.header}>
+        <View style={feat.nextBadge}>
+          <Text style={feat.nextText}>NEXT MATCH</Text>
+        </View>
+        <Text style={feat.roundText}>Round {match.round}</Text>
       </View>
 
-      <View style={matchStyles.teams}>
-        {/* Opponent */}
-        <View style={matchStyles.teamBlock}>
-          {opponentLogo ? (
-            <Image source={{ uri: opponentLogo }} style={matchStyles.logo} contentFit="contain" />
+      <View style={feat.teams}>
+        <View style={feat.teamBlock}>
+          {homeLogo ? (
+            <Image source={{ uri: homeLogo }} style={feat.logo} contentFit="contain" />
           ) : (
-            <View style={matchStyles.logoPlaceholder}>
-              <Text style={matchStyles.logoInitials}>
-                {opponent.tla ?? opponent.name.slice(0, 3).toUpperCase()}
+            <View style={feat.logoPlaceholder}>
+              <Text style={feat.logoInitials}>
+                {match.homeClub.tla ?? match.homeClub.name.slice(0, 3).toUpperCase()}
               </Text>
             </View>
           )}
-          <Text style={matchStyles.opponentName} numberOfLines={2}>{opponent.name}</Text>
-          <Text style={matchStyles.homeAway}>{isHome ? 'HOME' : 'AWAY'}</Text>
+          <Text style={feat.clubName} numberOfLines={2}>{match.homeClub.name}</Text>
+          <Text style={feat.homeAway}>HOME</Text>
         </View>
 
-        {/* Score / VS */}
-        <View style={matchStyles.scoreBlock}>
-          {match.finished && match.result ? (
-            <>
-              <Text style={[
-                matchStyles.score,
-                won === true && matchStyles.scoreWin,
-                won === false && matchStyles.scoreLoss,
-                drew === true && matchStyles.scoreDraw,
-              ]}>
-                {isHome
-                  ? match.result
-                  : `${awayScore}-${homScore}`}
-              </Text>
-              <View style={[
-                matchStyles.badge,
-                won === true && matchStyles.badgeWin,
-                won === false && matchStyles.badgeLoss,
-                drew === true && matchStyles.badgeDraw,
-              ]}>
-                <Text style={matchStyles.badgeText}>
-                  {won === true ? 'W' : drew === true ? 'D' : 'L'}
-                </Text>
-              </View>
-            </>
+        <View style={feat.vsBlock}>
+          <Text style={feat.vs}>vs</Text>
+        </View>
+
+        <View style={feat.teamBlock}>
+          {awayLogo ? (
+            <Image source={{ uri: awayLogo }} style={feat.logo} contentFit="contain" />
           ) : (
-            <Text style={matchStyles.vs}>vs</Text>
+            <View style={feat.logoPlaceholder}>
+              <Text style={feat.logoInitials}>
+                {match.awayClub.tla ?? match.awayClub.name.slice(0, 3).toUpperCase()}
+              </Text>
+            </View>
+          )}
+          <Text style={feat.clubName} numberOfLines={2}>{match.awayClub.name}</Text>
+          <Text style={feat.homeAway}>AWAY</Text>
+        </View>
+      </View>
+
+      <View style={feat.footer}>
+        <View style={feat.footerRow}>
+          <Ionicons name="calendar-outline" size={13} color="#555555" />
+          <Text style={feat.footerText}>{dateStr}</Text>
+        </View>
+        {match.referee && (
+          <View style={feat.footerRow}>
+            <Ionicons name="person-outline" size={13} color="#555555" />
+            <Text style={feat.footerText}>
+              {match.referee.firstName} {match.referee.lastName}
+            </Text>
+          </View>
+        )}
+        {match.homeClub.venue && (
+          <View style={feat.footerRow}>
+            <Ionicons name="location-outline" size={13} color="#555555" />
+            <Text style={feat.footerText}>{match.homeClub.venue}</Text>
+          </View>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+/* ── Compact match card ─────────────────────────────────────── */
+
+function MatchCard({ match, clubId }: { match: Match; clubId: number }) {
+  const router = useRouter();
+  const isHome = match.homeClub.id === clubId;
+
+  const homeLogo = match.homeClub.crest ?? match.homeClub.logoUrl;
+  const awayLogo = match.awayClub.crest ?? match.awayClub.logoUrl;
+
+  const date = new Date(match.date);
+  const dateStr = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+
+  const [homeScore, awayScore] = match.result ? match.result.split('-') : [null, null];
+  const myScore = isHome ? homeScore : awayScore;
+  const theirScore = isHome ? awayScore : homeScore;
+
+  const won = myScore !== null && theirScore !== null
+    ? parseInt(myScore) > parseInt(theirScore) : null;
+  const drew = myScore !== null && theirScore !== null
+    ? parseInt(myScore) === parseInt(theirScore) : null;
+
+  return (
+    <TouchableOpacity
+      style={mc.card}
+      onPress={() => router.push(`/match/${match.id}` as any)}
+      activeOpacity={0.7}>
+
+      <View style={mc.row}>
+        {/* Home */}
+        <View style={mc.teamSide}>
+          {homeLogo ? (
+            <Image source={{ uri: homeLogo }} style={mc.logo} contentFit="contain" />
+          ) : (
+            <View style={mc.logoPlaceholder}>
+              <Text style={mc.logoInitials}>
+                {match.homeClub.tla ?? match.homeClub.name.slice(0, 3).toUpperCase()}
+              </Text>
+            </View>
+          )}
+          <Text style={mc.tla} numberOfLines={1}>
+            {match.homeClub.tla ?? match.homeClub.name.slice(0, 3).toUpperCase()}
+          </Text>
+        </View>
+
+        {/* Centre */}
+        <View style={mc.centre}>
+          {match.finished && match.result ? (
+            <Text style={[
+              mc.score,
+              won === true && (isHome ? mc.scoreWin : mc.scoreLoss),
+              won === false && (isHome ? mc.scoreLoss : mc.scoreWin),
+              drew === true && mc.scoreDraw,
+            ]}>
+              {match.result}
+            </Text>
+          ) : (
+            <Text style={mc.vs}>vs</Text>
+          )}
+        </View>
+
+        {/* Away */}
+        <View style={[mc.teamSide, mc.teamSideRight]}>
+          <Text style={mc.tla} numberOfLines={1}>
+            {match.awayClub.tla ?? match.awayClub.name.slice(0, 3).toUpperCase()}
+          </Text>
+          {awayLogo ? (
+            <Image source={{ uri: awayLogo }} style={mc.logo} contentFit="contain" />
+          ) : (
+            <View style={mc.logoPlaceholder}>
+              <Text style={mc.logoInitials}>
+                {match.awayClub.tla ?? match.awayClub.name.slice(0, 3).toUpperCase()}
+              </Text>
+            </View>
           )}
         </View>
       </View>
+
+      {/* Meta */}
+      <View style={mc.meta}>
+        <Text style={mc.metaText}>R{match.round} · {dateStr}</Text>
+        {match.finished && myScore !== null && (
+          <View style={[
+            mc.badge,
+            won === true && mc.badgeWin,
+            won === false && mc.badgeLoss,
+            drew === true && mc.badgeDraw,
+          ]}>
+            <Text style={mc.badgeText}>
+              {won === true ? 'W' : drew === true ? 'D' : 'L'}
+            </Text>
+          </View>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+/* ── Empty state ─────────────────────────────────────────────── */
+
+function EmptyState({ text }: { text: string }) {
+  return (
+    <View style={styles.empty}>
+      <Text style={styles.emptyText}>{text}</Text>
     </View>
   );
 }
 
-function DetailRow({
-  icon, label, value, last,
-}: {
-  icon: any; label: string; value: string; last?: boolean;
-}) {
-  return (
-    <View style={[styles.row, !last && styles.rowBorder]}>
-      <View style={styles.rowLeft}>
-        <Ionicons name={icon} size={15} color="#555555" />
-        <Text style={styles.rowLabel}>{label}</Text>
-      </View>
-      <Text style={styles.rowValue} numberOfLines={2}>{value}</Text>
-    </View>
-  );
-}
+/* ── Styles ─────────────────────────────────────────────────── */
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000000' },
@@ -303,92 +400,128 @@ const styles = StyleSheet.create({
     width: 38, height: 38, borderRadius: 19,
     backgroundColor: '#1A1A1A',
     justifyContent: 'center', alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 16,
   },
   errorText: { color: '#666666', fontSize: 16 },
-  hero: { alignItems: 'center', paddingVertical: 20, marginBottom: 20 },
-  crest: { width: 90, height: 90, marginBottom: 14 },
+
+  // Hero
+  hero: {
+    flexDirection: 'row', alignItems: 'center',
+    gap: 12, marginBottom: 20,
+  },
+  crest: { width: 52, height: 52, flexShrink: 0 },
   crestPlaceholder: {
-    width: 90, height: 90, borderRadius: 16,
+    width: 52, height: 52, borderRadius: 10,
     backgroundColor: '#1A1A1A',
-    justifyContent: 'center', alignItems: 'center', marginBottom: 14,
+    justifyContent: 'center', alignItems: 'center', flexShrink: 0,
   },
-  crestInitials: { fontSize: 22, fontWeight: '800', color: '#444444', letterSpacing: 1 },
-  clubName: { fontSize: 26, fontWeight: '800', color: '#FFFFFF', textAlign: 'center', marginBottom: 4 },
-  shortName: { fontSize: 14, color: '#666666', textAlign: 'center' },
-  card: {
-    backgroundColor: '#111111', borderRadius: 12,
+  crestInitials: { fontSize: 14, fontWeight: '800', color: '#444444' },
+  heroText: { flex: 1 },
+  clubName: { fontSize: 18, fontWeight: '800', color: '#FFFFFF' },
+  clubMeta: { fontSize: 12, color: '#555555', marginTop: 2 },
+  favIcon: { padding: 6 },
+  btnDisabled: { opacity: 0.5 },
+
+  // Filter
+  filterRow: {
+    flexDirection: 'row', gap: 8,
+    marginBottom: 18,
+  },
+  filterTab: {
+    flex: 1, paddingVertical: 10, borderRadius: 10,
+    backgroundColor: '#111111',
     borderWidth: 1, borderColor: '#1E1E1E',
-    marginBottom: 14, overflow: 'hidden',
+    alignItems: 'center',
   },
-  row: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 16, paddingVertical: 14,
+  filterTabActive: {
+    backgroundColor: '#1A0000',
+    borderColor: '#CC0000',
   },
-  rowBorder: { borderBottomWidth: 1, borderBottomColor: '#1A1A1A' },
-  rowLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  rowLabel: { fontSize: 14, color: '#666666' },
-  rowValue: { fontSize: 14, color: '#FFFFFF', maxWidth: '55%', textAlign: 'right' },
-  favBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 8, backgroundColor: '#CC0000',
-    paddingVertical: 16, borderRadius: 12, minHeight: 52, marginBottom: 28,
-  },
-  favBtnActive: {
-    backgroundColor: '#0D0000', borderWidth: 1, borderColor: '#2A1A1A',
-  },
-  favBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
-  favBtnTextActive: { color: '#CC0000' },
-  btnDisabled: { opacity: 0.6 },
-  section: { marginBottom: 24 },
-  sectionLabel: {
-    fontSize: 11, fontWeight: '700', color: '#444444',
-    letterSpacing: 1.2, marginBottom: 10,
-  },
-  emptyMatches: { alignItems: 'center', paddingTop: 16 },
-  emptyMatchesText: { color: '#333333', fontSize: 14 },
+  filterTabText: { fontSize: 13, fontWeight: '700', color: '#555555' },
+  filterTabTextActive: { color: '#CC0000' },
+
+  empty: { alignItems: 'center', paddingTop: 32 },
+  emptyText: { color: '#333333', fontSize: 14 },
 });
 
-const matchStyles = StyleSheet.create({
+// Featured card styles
+const feat = StyleSheet.create({
   card: {
-    backgroundColor: '#111111', borderRadius: 12,
-    borderWidth: 1, borderColor: '#1E1E1E',
-    padding: 14, marginBottom: 8,
+    backgroundColor: '#0D0000',
+    borderRadius: 14,
+    borderWidth: 1, borderColor: '#3A0000',
+    padding: 16, marginBottom: 12,
   },
-  topRow: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    marginBottom: 12,
+  header: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    marginBottom: 16,
   },
-  round: { fontSize: 12, color: '#555555', fontWeight: '600' },
-  date: { fontSize: 12, color: '#444444' },
+  nextBadge: {
+    backgroundColor: '#CC0000',
+    paddingHorizontal: 8, paddingVertical: 3, borderRadius: 5,
+  },
+  nextText: { fontSize: 10, fontWeight: '900', color: '#FFFFFF', letterSpacing: 0.8 },
+  roundText: { fontSize: 12, color: '#555555', fontWeight: '600' },
   teams: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    flexDirection: 'row', alignItems: 'center',
+    marginBottom: 16,
   },
   teamBlock: { flex: 1, alignItems: 'center', gap: 6 },
-  logo: { width: 40, height: 40 },
+  logo: { width: 44, height: 44 },
   logoPlaceholder: {
-    width: 40, height: 40, borderRadius: 8,
+    width: 44, height: 44, borderRadius: 8,
     backgroundColor: '#1A1A1A',
     justifyContent: 'center', alignItems: 'center',
   },
-  logoInitials: { fontSize: 10, fontWeight: '700', color: '#444444' },
-  opponentName: {
+  logoInitials: { fontSize: 11, fontWeight: '700', color: '#444444' },
+  clubName: {
     fontSize: 13, fontWeight: '600', color: '#CCCCCC',
-    textAlign: 'center', maxWidth: 110,
+    textAlign: 'center', maxWidth: 120,
   },
   homeAway: { fontSize: 10, color: '#444444', fontWeight: '600', letterSpacing: 0.8 },
-  scoreBlock: { width: 70, alignItems: 'center', gap: 6 },
-  score: { fontSize: 22, fontWeight: '800', color: '#FFFFFF' },
+  vsBlock: { width: 50, alignItems: 'center' },
+  vs: { fontSize: 16, fontWeight: '800', color: '#333333' },
+  footer: { gap: 5, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#1A0000' },
+  footerRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  footerText: { fontSize: 12, color: '#666666' },
+});
+
+// Compact match card styles
+const mc = StyleSheet.create({
+  card: {
+    backgroundColor: '#111111', borderRadius: 10,
+    borderWidth: 1, borderColor: '#1E1E1E',
+    paddingHorizontal: 12, paddingVertical: 10,
+    marginBottom: 6,
+  },
+  row: { flexDirection: 'row', alignItems: 'center' },
+  teamSide: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  teamSideRight: { justifyContent: 'flex-end' },
+  logo: { width: 26, height: 26 },
+  logoPlaceholder: {
+    width: 26, height: 26, borderRadius: 5,
+    backgroundColor: '#1A1A1A',
+    justifyContent: 'center', alignItems: 'center',
+  },
+  logoInitials: { fontSize: 8, fontWeight: '700', color: '#444444' },
+  tla: { fontSize: 12, fontWeight: '700', color: '#CCCCCC', flexShrink: 1 },
+  centre: { width: 64, alignItems: 'center' },
+  score: { fontSize: 16, fontWeight: '800', color: '#FFFFFF' },
   scoreWin: { color: '#22C55E' },
   scoreLoss: { color: '#CC0000' },
   scoreDraw: { color: '#F59E0B' },
+  vs: { fontSize: 13, fontWeight: '700', color: '#333333' },
+  meta: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    marginTop: 6,
+  },
+  metaText: { fontSize: 11, color: '#444444' },
   badge: {
-    paddingHorizontal: 10, paddingVertical: 3,
-    borderRadius: 6, backgroundColor: '#1A1A1A',
+    paddingHorizontal: 7, paddingVertical: 2,
+    borderRadius: 4, backgroundColor: '#1A1A1A',
   },
   badgeWin: { backgroundColor: '#052E16' },
   badgeLoss: { backgroundColor: '#1A0000' },
   badgeDraw: { backgroundColor: '#1C1200' },
-  badgeText: { fontSize: 11, fontWeight: '800', color: '#FFFFFF' },
-  vs: { fontSize: 18, fontWeight: '700', color: '#333333' },
+  badgeText: { fontSize: 10, fontWeight: '800', color: '#FFFFFF' },
 });
