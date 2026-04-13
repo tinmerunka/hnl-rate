@@ -10,7 +10,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { userProfile, logout } = useAuth();
 
-  if (!userProfile) return null;
+  if (!userProfile) return <View style={{ flex: 1, backgroundColor: '#000000' }} />;
 
   const initials = userProfile.username.slice(0, 2).toUpperCase();
   const fav = userProfile.favoriteClub;
@@ -76,7 +76,7 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      <TouchableOpacity style={styles.logoutBtn} onPress={logout} activeOpacity={0.8}>
+      <TouchableOpacity style={styles.logoutBtn} onPress={() => { router.replace('/'); logout(); }} activeOpacity={0.8}>
         <Ionicons name="log-out-outline" size={18} color="#CC0000" />
         <Text style={styles.logoutText}>Log Out</Text>
       </TouchableOpacity>

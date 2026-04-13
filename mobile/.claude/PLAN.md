@@ -5,8 +5,9 @@
 - [x] Welcome / Splash ekran
 - [x] Login ekran (JWT pohrana via SecureStore)
 - [x] Registracija ekran
-- [x] AuthContext (token, userProfile, login, logout, refreshProfile)
+- [x] AuthContext — token, userProfile, loading, login, logout, refreshProfile, updateProfile
 - [x] API servis (`services/api.ts`) s tipiziranim funkcijama
+- [x] tokenStore — in-memory, forceLogout handler, notifyTokenRefreshed handler
 - [x] Clubs tab — lista klubova s pretragom po imenu, srce za toggle omiljenog
 - [x] Profile tab — avatar, user info, omiljeni klub, logout
 - [x] GET `/api/user/me` — dohvat profila
@@ -18,16 +19,31 @@
 
 ---
 
-## Faza 2: Utakmice
+## Faza 2: Utakmice ✅
 
+- [x] Detalji utakmice — rezultat, igrači, sudac (`/match/[id]`)
+- [x] GET `/api/matches/{id}` — detalji utakmice
+- [x] GET `/api/matches/{id}/lineup` — postava utakmice (null ako 204)
+- [x] GET `/api/clubs/{id}/matches` — utakmice kluba
 - [ ] Lista utakmica — ekran koji prikazuje utakmice po kolima
-- [ ] Detalji utakmice — rezultat, igrači, sudac
-- [ ] GET `/api/matches` (kad backend implementira)
-- [ ] GET `/api/matches/{id}` (kad backend implementira)
 
 ---
 
-## Faza 3: Ocjenjivanje
+## Faza 3: Auth sigurnost ✅
+
+- [x] Refresh token logika (token rotation — `doRefresh()` u `api.ts`)
+- [x] Auto logout na 401 odgovoru (interceptor u `authFetch` + `getMatchLineup`)
+- [x] Revokacija refresh tokena na backendu pri odjavi (`revokeRefreshToken`)
+- [x] `notifyTokenRefreshed` — sinkronizira React state (`token`) nakon auto-refresha
+- [x] `loading` state u AuthContext — sprječava prijevremeni redirect u `RootNavigator`
+- [x] `RootNavigator` u `_layout.tsx` — auth-based routing:
+  - `!token && inProtectedArea` → redirect na `/`
+  - `token && onAuthScreen` → redirect na `/(tabs)`
+- [x] Logout navigira odmah (ne čeka mrežni poziv) → nema bijelog ekrana
+
+---
+
+## Faza 4: Ocjenjivanje
 
 - [ ] Ocjena utakmice (MatchRating) — forma s ocjenom 1–10
 - [ ] Ocjena suca (RefereeRating)
@@ -40,7 +56,7 @@
 
 ---
 
-## Faza 4: Klubovi i igrači
+## Faza 5: Klubovi i igrači
 
 - [x] Lista svih klubova s pretragom (`GET /api/clubs`)
 - [ ] Igrači kluba na club detail ekranu
@@ -49,18 +65,15 @@
 
 ---
 
-## Faza 5: Poboljšanja
+## Faza 6: Poboljšanja
 
-- [ ] Refresh token logika (auto-renew, backend već podržava token rotation)
-- [ ] Auto logout na 401 odgovoru (interceptor u `api.ts`)
 - [ ] Loading skeleton ekrani
-- [ ] Slike klubova (crest) via expo-image
 - [ ] Bolje error poruke (lokalizacija na HR)
-- [ ] Pull-to-refresh na listama
+- [ ] Lista utakmica kao zasebni tab
 
 ---
 
-## Faza 6: Admin
+## Faza 7: Admin
 
 - [ ] Admin ekrani (blokiranje korisnika, sinkronizacija podataka)
 - [ ] POST `/api/admin/sync/clubs`

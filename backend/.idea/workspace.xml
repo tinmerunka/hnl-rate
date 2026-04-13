@@ -5,16 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9b2bd72d-56f1-4f89-b7b0-bf3a48e1843d" name="Changes" comment="test">
+      <change beforePath="$PROJECT_DIR$/.claude/PLAN.md" beforeDir="false" afterPath="$PROJECT_DIR$/.claude/PLAN.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CLAUDE.md" beforeDir="false" afterPath="$PROJECT_DIR$/CLAUDE.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/client/ApiFootballClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/client/ApiFootballClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/controller/MatchController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/controller/MatchController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/model/MatchPlayer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/model/MatchPlayer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/SyncService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/SyncService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/client/ApiFootballClient.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/client/ApiFootballClient.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/service/SyncService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/service/SyncService.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/controller/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/controller/AuthController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/security/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/security/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/AuthService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/AuthService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../mobile/CLAUDE.md" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/CLAUDE.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mobile/app/club/[id].tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/app/club/[id].tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../mobile/context/auth.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/context/auth.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../mobile/services/api.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/services/api.ts" afterDir="false" />
     </list>
@@ -44,12 +41,12 @@
     &quot;assignee&quot;: &quot;tinmerunka&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/tinmerunka/hnl-rate.git",
-    "accountId": "e3bef959-f1b2-4274-803b-3dcee04a5dc0"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/tinmerunka/hnl-rate.git&quot;,
+    &quot;accountId&quot;: &quot;e3bef959-f1b2-4274-803b-3dcee04a5dc0&quot;
   }
-}]]></component>
+}</component>
   <component name="KubernetesApiPersistence">{}</component>
   <component name="KubernetesApiProvider">{
   &quot;isMigrated&quot;: true
@@ -84,7 +81,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "Spring Boot.BackendApplication.executor": "Run",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "feature/match-details-view",
+    "git-widget-placeholder": "feature/security-refresh-token-update",
     "ignore.virus.scanning.warn.message": "true",
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",

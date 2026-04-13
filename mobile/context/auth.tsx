@@ -1,6 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 import { createContext, useContext, useEffect, useState } from 'react';
-import { getUserProfile } from '@/services/api';
+import { getUserProfile, revokeRefreshToken } from '@/services/api';
+import { tokenStore } from '@/services/tokenStore';
 
 export interface Club {
   id: number;
@@ -71,7 +72,8 @@ export interface UserProfile {
 interface AuthContextType {
   token: string | null;
   userProfile: UserProfile | null;
-  login: (token: string) => Promise<void>;
+  loading: boolean;
+  login: (accessToken: string, refreshToken: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   updateProfile: (profile: UserProfile) => void;
@@ -79,35 +81,62 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-const TOKEN_KEY = 'auth_token';
+const ACCESS_TOKEN_KEY = 'auth_token';
+const REFRESH_TOKEN_KEY = 'auth_refresh_token';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    SecureStore.getItemAsync(TOKEN_KEY).then(async (stored) => {
-      if (stored) {
-        setToken(stored);
+    tokenStore.setForceLogoutHandler(async () => {
+      await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
+      await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+      tokenStore.clearTokens();
+      setToken(null);
+      setUserProfile(null);
+    });
+
+    tokenStore.setTokenRefreshedHandler((newAccessToken: string) => {
+      setToken(newAccessToken);
+    });
+
+    Promise.all([
+      SecureStore.getItemAsync(ACCESS_TOKEN_KEY),
+      SecureStore.getItemAsync(REFRESH_TOKEN_KEY),
+    ]).then(async ([storedAccess, storedRefresh]) => {
+      if (storedAccess && storedRefresh) {
+        tokenStore.setTokens(storedAccess, storedRefresh);
+        setToken(storedAccess);
         try {
-          const profile = await getUserProfile(stored);
+          const profile = await getUserProfile(storedAccess);
           setUserProfile(profile);
         } catch {
-          await SecureStore.deleteItemAsync(TOKEN_KEY);
+          await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
+          await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+          tokenStore.clearTokens();
+          setToken(null);
         }
       }
-    });
+    }).finally(() => setLoading(false));
   }, []);
 
-  async function login(newToken: string) {
-    await SecureStore.setItemAsync(TOKEN_KEY, newToken);
-    setToken(newToken);
-    const profile = await getUserProfile(newToken);
+  async function login(accessToken: string, refreshToken: string) {
+    await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
+    await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
+    tokenStore.setTokens(accessToken, refreshToken);
+    setToken(accessToken);
+    const profile = await getUserProfile(accessToken);
     setUserProfile(profile);
   }
 
   async function logout() {
-    await SecureStore.deleteItemAsync(TOKEN_KEY);
+    const storedRefresh = tokenStore.getRefreshToken();
+    if (storedRefresh) await revokeRefreshToken(storedRefresh);
+    await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
+    await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+    tokenStore.clearTokens();
     setToken(null);
     setUserProfile(null);
   }
@@ -123,7 +152,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ token, userProfile, login, logout, refreshProfile, updateProfile }}>
+    <AuthContext.Provider value={{ token, userProfile, loading, login, logout, refreshProfile, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

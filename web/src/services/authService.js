@@ -3,6 +3,7 @@ const API_URL = "http://localhost:8080/api/auth";
 export const login = async (username, password) => {
     const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
+        credentials: 'include', // receives HttpOnly refresh token cookie
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
     });
@@ -11,39 +12,34 @@ export const login = async (username, password) => {
         throw new Error('Pogrešno korisničko ime ili lozinka.');
     }
 
-    return response.json();
+    return response.json(); // { accessToken, refreshToken } — accessToken stored in memory
 };
 
+// Called on app load and by apiClient on 401 — uses HttpOnly cookie automatically
 export const refreshToken = async () => {
-    const storedRefreshToken = localStorage.getItem('refreshToken');
-
     const response = await fetch(`${API_URL}/refresh`, {
         method: 'POST',
+        credentials: 'include', // sends HttpOnly cookie, receives new one
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken: storedRefreshToken }),
+        body: JSON.stringify({}), // empty body — Spring requires valid JSON even when @RequestBody is optional
     });
 
     if (!response.ok) {
         throw new Error('Sesija je istekla, molimo prijavite se ponovo.');
     }
 
-    const data = await response.json();
-    localStorage.setItem('accessToken', data.accessToken);
-    localStorage.setItem('refreshToken', data.refreshToken);
-    return data;
+    return response.json();
 };
 
 export const logout = async () => {
-    const storedRefreshToken = localStorage.getItem('refreshToken');
-
     try {
         await fetch(`${API_URL}/logout`, {
             method: 'POST',
+            credentials: 'include', // sends cookie so backend can revoke it
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ refreshToken: storedRefreshToken }),
+            body: JSON.stringify({}),
         });
-    } finally {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+    } catch {
+        // Ignore network errors — local logout proceeds regardless
     }
 };
