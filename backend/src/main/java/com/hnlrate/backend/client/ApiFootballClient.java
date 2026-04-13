@@ -46,6 +46,15 @@ public class ApiFootballClient {
         return response.getResponse();
     }
 
+    public List<LineupResponseItem> getLineups(int fixtureId) {
+        ApiResponse<LineupResponseItem> response = restClient.get()
+                .uri("/fixtures/lineups?fixture={fixture}", fixtureId)
+                .retrieve()
+                .body(new ParameterizedTypeReference<>() {});
+
+        return response != null && response.getResponse() != null ? response.getResponse() : List.of();
+    }
+
     public List<PlayerResponseItem> getPlayers() {
         List<PlayerResponseItem> all = new ArrayList<>();
         int page = 1;

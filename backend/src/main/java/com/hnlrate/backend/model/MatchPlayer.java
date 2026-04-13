@@ -23,4 +23,21 @@ public class MatchPlayer {
     @ManyToOne
     @JoinColumn(name = "player_id", nullable = false)
     private Player player;
+
+    @ManyToOne
+    @JoinColumn(name = "club_id", nullable = false)
+    private Club club;
+
+    @Column(nullable = false)
+    private Boolean starter;
+
+    @Column
+    private String position;
+
+    @Column
+    private Integer number;
+
+    // Formation grid position e.g. "2:3" — null for bench players
+    @Column
+    private String grid;
 }

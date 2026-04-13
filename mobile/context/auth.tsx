@@ -15,14 +15,50 @@ export interface Club {
   venue?: string;
 }
 
+export interface Referee {
+  id: number;
+  firstName: string;
+  lastName: string;
+}
+
+export interface Player {
+  id: number;
+  firstName: string;
+  lastName: string;
+  position?: string;
+  number?: number;
+  club: Club;
+}
+
 export interface Match {
   id: number;
   homeClub: Club;
   awayClub: Club;
+  referee?: Referee | null;
   round: number;
   date: string;
   result: string | null;
   finished: boolean;
+}
+
+export interface LineupPlayer {
+  id: number;
+  firstName: string;
+  lastName: string;
+  number?: number;
+  position?: string;
+  grid?: string;
+}
+
+export interface TeamLineup {
+  club: Club;
+  startingXI: LineupPlayer[];
+  bench: LineupPlayer[];
+}
+
+export interface MatchLineup {
+  homeTeam: TeamLineup;
+  awayTeam: TeamLineup;
 }
 
 export interface UserProfile {

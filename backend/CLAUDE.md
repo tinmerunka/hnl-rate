@@ -84,6 +84,7 @@ src/main/java/com/hnlrate/backend/
 | GET    | /api/players/{id}          | Da         | Detalji igrača |
 | GET    | /api/referees              | Da         | Svi suci |
 | GET    | /api/referees/{id}         | Da         | Detalji suca |
+| GET    | /api/matches/{id}/lineup   | Da         | Postava utakmice (startnih 11 + klupa), lazy sync s api-football |
 | POST   | /api/admin/sync/clubs      | Da (ADMIN) | Sinkronizacija klubova s api-football |
 | POST   | /api/admin/sync/matches    | Da (ADMIN) | Sinkronizacija utakmica + sudaca s api-football |
 | POST   | /api/admin/sync/players    | Da (ADMIN) | Sinkronizacija igrača s api-football (paginirano) |

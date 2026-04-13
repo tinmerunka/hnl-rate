@@ -4,9 +4,11 @@ import com.hnlrate.backend.client.ApiFootballClient;
 import com.hnlrate.backend.dto.external.*;
 import com.hnlrate.backend.model.Club;
 import com.hnlrate.backend.model.Match;
+import com.hnlrate.backend.model.MatchPlayer;
 import com.hnlrate.backend.model.Player;
 import com.hnlrate.backend.model.Referee;
 import com.hnlrate.backend.repository.ClubRepository;
+import com.hnlrate.backend.repository.MatchPlayerRepository;
 import com.hnlrate.backend.repository.MatchRepository;
 import com.hnlrate.backend.repository.PlayerRepository;
 import com.hnlrate.backend.repository.RefereeRepository;
@@ -24,6 +26,7 @@ public class SyncService {
     private final ApiFootballClient apiFootballClient;
     private final ClubRepository clubRepository;
     private final MatchRepository matchRepository;
+    private final MatchPlayerRepository matchPlayerRepository;
     private final PlayerRepository playerRepository;
     private final RefereeRepository refereeRepository;
 
@@ -128,6 +131,43 @@ public class SyncService {
         }
 
         return count;
+    }
+
+    public void syncLineups(Match match) {
+        if (match.getApiFootballId() == null) return;
+
+        List<LineupResponseItem> lineups = apiFootballClient.getLineups(match.getApiFootballId());
+        if (lineups.isEmpty()) return;
+
+        matchPlayerRepository.deleteByMatch(match);
+
+        for (LineupResponseItem lineup : lineups) {
+            Club club = clubRepository.findByApiFootballId(lineup.getTeam().getId()).orElse(null);
+            if (club == null) continue;
+
+            persistLineupEntries(match, club, lineup.getStartXI(), true);
+            persistLineupEntries(match, club, lineup.getSubstitutes(), false);
+        }
+    }
+
+    private void persistLineupEntries(Match match, Club club, List<LineupPlayerEntryDto> entries, boolean starter) {
+        if (entries == null) return;
+        for (LineupPlayerEntryDto entry : entries) {
+            LineupPlayerDto p = entry.getPlayer();
+            if (p == null || p.getId() == null) continue;
+
+            playerRepository.findByApiFootballId(p.getId()).ifPresent(player -> {
+                MatchPlayer mp = new MatchPlayer();
+                mp.setMatch(match);
+                mp.setPlayer(player);
+                mp.setClub(club);
+                mp.setStarter(starter);
+                mp.setPosition(p.getPos());
+                mp.setNumber(p.getNumber());
+                mp.setGrid(p.getGrid());
+                matchPlayerRepository.save(mp);
+            });
+        }
     }
 
     private Club resolvePlayerClub(PlayerResponseItem item) {

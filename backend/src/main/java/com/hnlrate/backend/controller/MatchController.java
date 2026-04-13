@@ -1,7 +1,12 @@
 package com.hnlrate.backend.controller;
 
 import com.hnlrate.backend.dto.MatchDTO;
+import com.hnlrate.backend.dto.MatchLineupDTO;
+import com.hnlrate.backend.model.Match;
+import com.hnlrate.backend.model.MatchPlayer;
+import com.hnlrate.backend.repository.MatchPlayerRepository;
 import com.hnlrate.backend.service.MatchService;
+import com.hnlrate.backend.service.SyncService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +19,8 @@ import java.util.List;
 public class MatchController {
 
     private final MatchService matchService;
+    private final MatchPlayerRepository matchPlayerRepository;
+    private final SyncService syncService;
 
     @GetMapping
     public ResponseEntity<List<MatchDTO>> getAll(
@@ -38,5 +45,24 @@ public class MatchController {
         return matchService.getById(id)
                 .map(m -> ResponseEntity.ok(new MatchDTO(m)))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{id}/lineup")
+    public ResponseEntity<MatchLineupDTO> getLineup(@PathVariable Integer id) {
+        Match match = matchService.getById(id).orElse(null);
+        if (match == null) return ResponseEntity.notFound().build();
+
+        // Lazy sync: fetch from API if not yet stored and match is finished
+        if (!matchPlayerRepository.existsByMatch(match)) {
+            if (!Boolean.TRUE.equals(match.getFinished())) {
+                return ResponseEntity.noContent().build();
+            }
+            syncService.syncLineups(match);
+        }
+
+        List<MatchPlayer> players = matchPlayerRepository.findByMatch(match);
+        if (players.isEmpty()) return ResponseEntity.noContent().build();
+
+        return ResponseEntity.ok(new MatchLineupDTO(match.getHomeClub(), match.getAwayClub(), players));
     }
 }
