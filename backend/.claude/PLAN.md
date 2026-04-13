@@ -2,8 +2,7 @@
 
 ## Kontekst
 
-Backend ima solidne temelje (modeli, auth, JWT), ali nedostaju svi "core" endpointi i integracija s api-football.com.
-Cilj ovog plana je definirati redoslijed i arhitekturalne odluke PRIJE implementacije.
+Backend ima solidne temelje (modeli, auth, JWT, CRUD admin endpointi, lineup sync). Sljedeći korak je implementacija rating endpointa koje mobilna aplikacija treba za ocjenjivanje.
 
 ---
 
@@ -13,34 +12,13 @@ Cilj ovog plana je definirati redoslijed i arhitekturalne odluke PRIJE implement
 **Problem:** Servisni sloj baca `RuntimeException` → Spring vraća HTTP 500 umjesto 400/404.
 **Fix:** Dodati `@RestControllerAdvice` klasu koja lovi iznimke i vraća smislene HTTP odgovore.
 
-### 2. JWT secret je hardcoded
-**Problem:** `JwtService.java` ima secret direktno u kodu → sigurnosni rizik, ne smije ići u git.
-**Fix:** Premjestiti u `application.properties` → `@Value("${jwt.secret}")`
-
-### 3. Direktno vraćanje entiteta iz controllera
-**Problem:** `ClubController` vraća `List<Club>` direktno → izlaže interne kolone, JPA lazy-load problemi.
+### 2. Direktno vraćanje entiteta iz controllera
+**Problem:** Neki controlleri vraćaju JPA entitete direktno → izlaže interne kolone, JPA lazy-load problemi.
 **Fix:** Uvesti response DTO-e za sve endpointe koji vraćaju podatke.
 
-### 4. `@Data` na JPA entitetima s relacijama
+### 3. `@Data` na JPA entitetima s relacijama
 **Problem:** Lombok `@Data` generira `equals/hashCode/toString` koji prolaze kroz relacije → može uzrokovati `StackOverflowError` ili N+1 upite.
 **Fix:** Zamijeniti `@Data` s `@Getter @Setter` na svim entitetima koji imaju `@ManyToOne`.
-
-### 5. Nema `apiFootballId` na Club, Player, Referee
-**Problem:** Bez vanjskog ID-a ne možemo znati treba li upsert ili insert pri sinkronizaciji.
-**Fix:** Dodati `Integer apiFootballId` kolonu na Club, Player, Referee.
-
----
-
-## Novi model — MatchPlayer (Lineup)
-
-Bez ovog modela korisnik može ocijeniti igrača koji nije nastupao u utakmici.
-
-```
-MatchPlayer { id, match, player }
-```
-
-api-football.com `/fixtures/lineups` vraća postave → punjenje automatski pri syncu.
-Korisnik može ocijeniti **samo igrače iz MatchPlayer tablice** za tu utakmicu.
 
 ---
 
@@ -61,8 +39,7 @@ Korisnik može ocijeniti **samo igrače iz MatchPlayer tablice** za tu utakmicu.
 
 ## Faze implementacije
 
-### Faza 0 — Popravci temelja
-*Radi se bez API ključa*
+### Faza 0 — Popravci temelja ✅
 
 - [x] `@Data` → `@Getter @Setter` na svim JPA entitetima
 - [x] Globalni error handler (`exception/GlobalExceptionHandler.java`)
@@ -70,49 +47,64 @@ Korisnik može ocijeniti **samo igrače iz MatchPlayer tablice** za tu utakmicu.
 - [x] `apiFootballId` polje na Club, Player, Referee
 - [x] Novi model `MatchPlayer` (`model/MatchPlayer.java`)
 
-### Faza 1 — Vanjski API + Sinkronizacija
-*Treba API ključ*
+### Faza 1 — Vanjski API + Sinkronizacija ✅ (djelomično)
 
 - [x] `client/ApiFootballClient.java` — HTTP pozivi prema api-football.com
-- [x] `dto/external/` — DTO-i za parsiranje API odgovora (ApiResponse, TeamDto, VenueDto, TeamResponseItem)
-- [x] `service/SyncService.java` — logika upsertanja klubova
-- [x] `controller/AdminController.java` — `POST /api/admin/sync/clubs` (samo ADMIN)
-- [x] Sync za utakmice u SyncService (`POST /api/admin/sync/matches`)
-- [ ] Sync za igrače, postave u SyncService
+- [x] `dto/external/` — DTO-i za parsiranje API odgovora
+- [x] `service/SyncService.java` — logika upsertanja klubova, utakmica, igrača
+- [x] `POST /api/admin/sync/clubs`
+- [x] `POST /api/admin/sync/matches`
+- [x] `POST /api/admin/sync/players`
+- [x] `GET /api/matches/{id}/lineup` — lazy sync postave pri prvom dohvatu
 - [ ] `@EnableScheduling` + dnevni `@Scheduled` job za automatski sync
 
-### Faza 2 — Core read endpointi
+### Faza 2 — Core read endpointi ✅
 
-- [x] `GET /api/clubs/{id}` — detalji kluba (ClubDTO)
+- [x] `GET /api/clubs` — lista svih klubova
+- [x] `GET /api/clubs/{id}` — detalji kluba
 - [x] `POST /api/clubs/{id}/favorite` — postavi omiljeni klub
 - [x] `DELETE /api/clubs/favorite` — ukloni omiljeni klub
-- [x] `GET /api/user/me` — profil prijavljenog korisnika (UserProfileDTO s favoriteClub)
-- [x] `GET /api/clubs/{id}/matches` — utakmice kluba (past + upcoming), sortirano po datumu
-- [ ] `GET /api/matches` — sve utakmice
-- [ ] `GET /api/matches/{id}` — detalji + prosječne ocjene
-- [ ] `GET /api/matches/round/{round}` — po kolu
-- [ ] `GET /api/matches/finished` — završene utakmice
-- [ ] `GET /api/players/{id}` — profil igrača
-- [ ] `GET /api/clubs/{id}/players` — igrači kluba
-- [ ] `GET /api/referees/{id}` — profil suca
+- [x] `GET /api/user/me` — profil prijavljenog korisnika
+- [x] `GET /api/clubs/{id}/matches` — utakmice kluba
+- [x] `GET /api/matches` — sve utakmice (?round=N, ?finished=true)
+- [x] `GET /api/matches/{id}` — detalji utakmice
+- [x] `GET /api/players` — svi igrači (?clubId=N)
+- [x] `GET /api/players/{id}` — detalji igrača
+- [x] `GET /api/referees` — svi suci
+- [x] `GET /api/referees/{id}` — detalji suca
 
-### Faza 3 — Rating endpointi
+### Faza 2b — Auth sigurnost ✅
+
+- [x] Refresh token kao HttpOnly cookie (web) uz backward compat s body (mobile)
+- [x] `POST /api/auth/refresh` — čita cookie, fallback na body
+- [x] `POST /api/auth/logout` — uvijek briše cookie (try-finally)
+- [x] `Set-Cookie` header eksponiran u CORS konfiguraciji
+
+### Faza 3 — Admin CRUD endpointi ✅
+
+- [x] `POST/PUT/DELETE /api/admin/clubs`
+- [x] `POST/PUT/DELETE /api/admin/matches`
+- [x] `POST/PUT/DELETE /api/admin/players`
+- [x] `POST/PUT/DELETE /api/admin/referees`
+
+### Faza 4 — Rating endpointi
+
 *Ocjenjivanje moguće samo za `match.finished = true`*
 
-- [ ] `POST /api/matches/{id}/ratings` — ocijeni utakmicu
+- [ ] `POST /api/matches/{id}/rate` — ocijeni utakmicu (MatchRating)
 - [ ] `GET  /api/matches/{id}/ratings` — ocjene + prosjek
-- [ ] `POST /api/matches/{id}/referee-ratings` — ocijeni suca
+- [ ] `POST /api/matches/{id}/rate-referee` — ocijeni suca (RefereeRating)
 - [ ] `GET  /api/matches/{id}/referee-ratings`
-- [ ] `POST /api/matches/{id}/atmosphere-ratings` — ocijeni atmosferu
+- [ ] `POST /api/matches/{id}/rate-atmosphere` — ocijeni atmosferu
 - [ ] `GET  /api/matches/{id}/atmosphere-ratings`
-- [ ] `POST /api/matches/{matchId}/player-ratings/{playerId}` — ocijeni igrača
+- [ ] `POST /api/matches/{matchId}/rate-players/{playerId}` — ocijeni igrača
 - [ ] `GET  /api/matches/{matchId}/player-ratings` — sve ocjene igrača
 
-### Faza 4 — Admin endpointi
+### Faza 5 — Admin upravljanje korisnicima
 
-- [ ] `GET /api/admin/users` — svi korisnici
-- [ ] `PUT /api/admin/users/{id}/block` — blokiraj/odblokiraj korisnika
-- [ ] `GET /api/admin/ratings` — sve ocjene (moderacija)
+- [ ] `GET  /api/admin/users` — svi korisnici
+- [ ] `PUT  /api/admin/users/{id}/block` — blokiraj/odblokiraj korisnika
+- [ ] `GET  /api/admin/ratings` — sve ocjene (moderacija)
 
 ---
 
@@ -120,7 +112,8 @@ Korisnik može ocijeniti **samo igrače iz MatchPlayer tablice** za tu utakmicu.
 
 | Pitanje | Odluka |
 |---------|--------|
-| Lineup model | ✅ Dodati `MatchPlayer` — ocjena samo za nastupavše igrače |
+| Lineup model | ✅ `MatchPlayer` — ocjena samo za nastupavše igrače |
 | API ključ | Plaćeni plan (free ne pokriva tekuću sezonu) |
-| Sinkronizacija | ✅ Ručni admin endpoint + `@Scheduled` dnevni job |
+| Sinkronizacija | ✅ Ručni admin endpoint + `@Scheduled` dnevni job (job još nije implementiran) |
 | Rating pravilo | ✅ Samo za završene utakmice (`finished = true`) |
+| Refresh token pohrana | ✅ HttpOnly cookie za web, body za mobile (backward compat) |

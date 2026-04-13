@@ -43,7 +43,7 @@ export default function LoginScreen() {
       }
 
       const token = data.accessToken ?? data.token;
-      await login(token);
+      await login(token, data.refreshToken);
       router.replace('/(tabs)');
     } catch {
       Alert.alert('Error', 'Could not connect to server. Please try again.');

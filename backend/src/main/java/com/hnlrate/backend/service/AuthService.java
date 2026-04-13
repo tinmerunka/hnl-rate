@@ -58,7 +58,13 @@ public class AuthService {
     }
 
     public AuthResponseDTO refresh(RefreshTokenRequestDTO dto) {
-        RefreshToken refreshToken = refreshTokenService.findByToken(dto.getRefreshToken())
+        return refreshWithToken(dto.getRefreshToken());
+    }
+
+    public AuthResponseDTO refreshWithToken(String token) {
+        if (token == null) throw new RuntimeException("Refresh token nije pronađen!");
+
+        RefreshToken refreshToken = refreshTokenService.findByToken(token)
                 .orElseThrow(() -> new RuntimeException("Refresh token nije pronađen!"));
 
         if (!refreshTokenService.isValid(refreshToken)) {
@@ -72,7 +78,11 @@ public class AuthService {
     }
 
     public void logout(RefreshTokenRequestDTO dto) {
-        RefreshToken refreshToken = refreshTokenService.findByToken(dto.getRefreshToken())
+        logoutWithToken(dto.getRefreshToken());
+    }
+
+    public void logoutWithToken(String token) {
+        RefreshToken refreshToken = refreshTokenService.findByToken(token)
                 .orElseThrow(() -> new RuntimeException("Refresh token nije pronađen!"));
 
         refreshTokenService.revokeAllUserTokens(refreshToken.getUser());

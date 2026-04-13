@@ -15,7 +15,7 @@ Nakon svake implementirane stavke:
 
 ## O projektu
 
-HNL Rate je mobilna aplikacija za navijače koji mogu ocjenjivati HNL utakmice. Backend je Spring Boot REST API.
+HNL Rate je mobilna aplikacija (+ admin web) za navijače koji mogu ocjenjivati HNL utakmice. Backend je Spring Boot REST API.
 
 **Korisnici mogu ocjenjivati:**
 - Utakmice (MatchRating)
@@ -44,12 +44,13 @@ Sve varijable okoline su u `.env` fajlu (nije u gitu). Baza: Supabase (aws-eu-ce
 
 ```
 src/main/java/com/hnlrate/backend/
-├── controller/      AuthController, ClubController
-├── dto/             LoginDTO, RegisterDTO, AuthResponseDTO
+├── controller/      AuthController, ClubController, MatchController,
+│                    PlayerController, RefereeController, UserController, AdminController
+├── dto/             LoginDTO, RegisterDTO, AuthResponseDTO, RefreshTokenRequestDTO, ...
 ├── model/           9 entiteta (vidi dolje)
 ├── repository/      JPA repozitoriji za svaki model
 ├── security/        SecurityConfig, JwtService, JwtAuthFilter
-└── service/         Servisni sloj za svaki model
+└── service/         Servisni sloj za svaki model, SyncService
 ```
 
 ## Modeli
@@ -57,10 +58,11 @@ src/main/java/com/hnlrate/backend/
 | Model           | Tablica           | Opis |
 |-----------------|-------------------|------|
 | User            | users             | Navijač s ulogom (USER/ADMIN), može biti blokiran |
-| Club            | club              | Klub (ime, grad, logoUrl) |
+| Club            | club              | Klub (ime, grad, logoUrl, apiFootballId) |
 | Match           | match             | Utakmica (domaćin, gost, sudac, kolo, datum, rezultat, gotova) |
-| Player          | player            | Igrač (ime, prezime, pozicija, broj, klub) |
-| Referee         | referee           | Sudac (ime, prezime) |
+| Player          | player            | Igrač (ime, prezime, pozicija, broj, klub, apiFootballId) |
+| Referee         | referee           | Sudac (ime, prezime, apiFootballId) |
+| MatchPlayer     | match_player      | Postava utakmice (igrač + utakmica, startni/klupa) |
 | PlayerRating    | player_rating     | Ocjena igrača na utakmici (1 ocjena po korisniku/igraču/utakmici) |
 | MatchRating     | match_rating      | Ocjena utakmice |
 | RefereeRating   | referee_rating    | Ocjena suca na utakmici |
@@ -71,20 +73,22 @@ src/main/java/com/hnlrate/backend/
 | Metoda | URL                        | Auth       | Opis |
 |--------|----------------------------|------------|------|
 | POST   | /api/auth/register         | Ne         | Registracija |
-| POST   | /api/auth/login            | Ne         | Login, vraća JWT |
+| POST   | /api/auth/login            | Ne         | Login — JWT u body + refresh token u HttpOnly cookie |
+| POST   | /api/auth/refresh          | Ne         | Obnovi access token (čita iz cookie, fallback na body) |
+| POST   | /api/auth/logout           | Ne         | Revokacija refresh tokena, briše HttpOnly cookie |
+| GET    | /api/user/me               | Da         | Profil prijavljenog korisnika |
 | GET    | /api/clubs                 | Da         | Dohvati sve klubove |
 | GET    | /api/clubs/{id}            | Da         | Detalji kluba |
 | POST   | /api/clubs/{id}/favorite   | Da         | Postavi klub kao omiljeni |
 | DELETE | /api/clubs/favorite        | Da         | Ukloni omiljeni klub |
 | GET    | /api/clubs/{id}/matches    | Da         | Sve utakmice kluba |
-| GET    | /api/user/me               | Da         | Profil prijavljenog korisnika |
 | GET    | /api/matches               | Da         | Sve utakmice (?round=N, ?finished=true) |
 | GET    | /api/matches/{id}          | Da         | Detalji utakmice (s refereeom) |
+| GET    | /api/matches/{id}/lineup   | Da         | Postava utakmice (startnih 11 + klupa), lazy sync s api-football |
 | GET    | /api/players               | Da         | Svi igrači (?clubId=N) |
 | GET    | /api/players/{id}          | Da         | Detalji igrača |
 | GET    | /api/referees              | Da         | Svi suci |
 | GET    | /api/referees/{id}         | Da         | Detalji suca |
-| GET    | /api/matches/{id}/lineup   | Da         | Postava utakmice (startnih 11 + klupa), lazy sync s api-football |
 | POST   | /api/admin/sync/clubs      | Da (ADMIN) | Sinkronizacija klubova s api-football |
 | POST   | /api/admin/sync/matches    | Da (ADMIN) | Sinkronizacija utakmica + sudaca s api-football |
 | POST   | /api/admin/sync/players    | Da (ADMIN) | Sinkronizacija igrača s api-football (paginirano) |
@@ -106,10 +110,11 @@ src/main/java/com/hnlrate/backend/
 - **Javni**: `/api/auth/**`
 - **Admin**: `/api/admin/**`
 - **Ostalo**: zahtijeva JWT (`Authorization: Bearer <token>`)
-- CORS dopušten s `http://localhost:3000`
+- CORS dopušten s `http://localhost:3000`, `Set-Cookie` header eksponiran
 - CSRF onemogućen, sesije stateless
 - JWT secret: u `.env` kao `JWT_SECRET` env varijabla ✓
 - Blokirani korisnici ne mogu se prijaviti (provjerava se u JwtAuthFilter)
+- Refresh token: HttpOnly cookie (`Path=/api/auth`, `MaxAge=7d`, `SameSite=Strict`) za web; body za mobile (backward compat)
 
 ## Vanjski API — api-football.com
 
@@ -138,12 +143,13 @@ GET /standings?league={id}&season=2025      → ljestvica
 
 ## TODO — Endpointi koji nedostaju
 
-- [ ] `/api/matches/{id}/rate` — ocijeni utakmicu (MatchRating)
-- [ ] `/api/matches/{id}/rate-referee` — ocijeni suca (RefereeRating)
-- [ ] `/api/matches/{id}/rate-atmosphere` — ocijeni atmosferu (AtmosphereRating)
-- [ ] `/api/matches/{id}/rate-players` — ocijeni igrača (PlayerRating)
-- [ ] `/api/players/{id}` — prosjek ocjena igrača
-- [ ] `/api/admin/**` — blokiranje korisnika
+- [ ] `POST /api/matches/{id}/rate` — ocijeni utakmicu (MatchRating)
+- [ ] `POST /api/matches/{id}/rate-referee` — ocijeni suca (RefereeRating)
+- [ ] `POST /api/matches/{id}/rate-atmosphere` — ocijeni atmosferu (AtmosphereRating)
+- [ ] `POST /api/matches/{id}/rate-players` — ocijeni igrača (PlayerRating)
+- [ ] `GET  /api/matches/{id}/ratings` — prosjeci ocjena utakmice
+- [ ] `PUT  /api/admin/users/{id}/block` — blokiranje korisnika
+- [ ] `@Scheduled` dnevni job za automatski sync
 
 ## Napomene
 
@@ -151,3 +157,4 @@ GET /standings?league={id}&season=2025      → ljestvica
 - Sve tajne (JWT, DB, API key) su u `.env` fajlu koji Spring Boot čita automatski — NE commitati!
 - `application.properties` koristi `${VAR_NAME}` syntax za env varijable
 - DDL auto: `update` — OK za razvoj, za produkciju koristiti Flyway/Liquibase
+- Spring `@RequestBody(required = false)` zahtijeva validan JSON body čak i kad je prazan — slati `{}`
