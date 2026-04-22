@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import DashboardLayout from './components/DashboardLayout';
 import Dashboard from './pages/dashboard/Dashboard';
 import Clubs from './pages/dashboard/Clubs';
@@ -29,6 +31,8 @@ function App() {
       <AuthProvider>
         <Routes>
           <Route path="/login"              element={<Login />} />
+          <Route path="/forgot-password"   element={<ForgotPassword />} />
+          <Route path="/reset-password"    element={<ResetPassword />} />
           <Route path="/dashboard"          element={<DashboardRoute><Dashboard /></DashboardRoute>} />
           <Route path="/dashboard/clubs"    element={<DashboardRoute><Clubs /></DashboardRoute>} />
           <Route path="/dashboard/matches"  element={<DashboardRoute><Matches /></DashboardRoute>} />
