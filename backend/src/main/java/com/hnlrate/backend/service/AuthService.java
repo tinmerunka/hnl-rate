@@ -1,16 +1,19 @@
 package com.hnlrate.backend.service;
 
-import com.hnlrate.backend.dto.AuthResponseDTO;
-import com.hnlrate.backend.dto.LoginDTO;
-import com.hnlrate.backend.dto.RefreshTokenRequestDTO;
-import com.hnlrate.backend.dto.RegisterDTO;
+import com.hnlrate.backend.dto.*;
+import com.hnlrate.backend.model.PasswordResetToken;
 import com.hnlrate.backend.model.RefreshToken;
 import com.hnlrate.backend.model.Role;
 import com.hnlrate.backend.model.User;
+import com.hnlrate.backend.repository.PasswordResetTokenRepository;
 import com.hnlrate.backend.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +23,8 @@ public class AuthService {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenService refreshTokenService;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final EmailService emailService;
 
     public void register(RegisterDTO dto) {
         if (userService.getByEmail(dto.getEmail()).isPresent()) {
@@ -86,5 +91,42 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("Refresh token nije pronađen!"));
 
         refreshTokenService.revokeAllUserTokens(refreshToken.getUser());
+    }
+
+    @Transactional
+    public void forgotPassword(ForgotPasswordDTO dto) {
+        userService.getByEmail(dto.getEmail()).ifPresent(user -> {
+            passwordResetTokenRepository.deleteByUser_Id(user.getId());
+
+            PasswordResetToken resetToken = new PasswordResetToken();
+            resetToken.setToken(UUID.randomUUID().toString());
+            resetToken.setUser(user);
+            resetToken.setExpiresAt(LocalDateTime.now().plusMinutes(15));
+            passwordResetTokenRepository.save(resetToken);
+
+            emailService.sendPasswordResetEmail(user.getEmail(), resetToken.getToken());
+        });
+    }
+
+    @Transactional
+    public void resetPassword(ResetPasswordDTO dto) {
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(dto.getToken())
+                .orElseThrow(() -> new RuntimeException("Token nije validan!"));
+
+        if (resetToken.isUsed()) {
+            throw new RuntimeException("Token je već iskorišten!");
+        }
+        if (resetToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Token je istekao!");
+        }
+
+        User user = resetToken.getUser();
+        String newHash = passwordEncoder.encode(dto.getNewPassword());
+        userService.updatePasswordHash(user.getId(), newHash);
+
+        resetToken.setUsed(true);
+        passwordResetTokenRepository.save(resetToken);
+
+        refreshTokenService.revokeAllUserTokens(user);
     }
 }
