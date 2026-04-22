@@ -77,6 +77,7 @@ src/main/java/com/hnlrate/backend/
 | POST   | /api/auth/refresh          | Ne         | Obnovi access token (čita iz cookie, fallback na body) |
 | POST   | /api/auth/logout           | Ne         | Revokacija refresh tokena, briše HttpOnly cookie |
 | GET    | /api/user/me               | Da         | Profil prijavljenog korisnika |
+| GET    | /api/user/ratings          | Da         | Sve moje ocjene grupirane po utakmici (My Ratings) |
 | GET    | /api/clubs                 | Da         | Dohvati sve klubove |
 | GET    | /api/clubs/{id}            | Da         | Detalji kluba |
 | POST   | /api/clubs/{id}/favorite   | Da         | Postavi klub kao omiljeni |
@@ -104,11 +105,8 @@ src/main/java/com/hnlrate/backend/
 | POST   | /api/admin/referees        | Da (ADMIN) | Kreiraj suca |
 | PUT    | /api/admin/referees/{id}   | Da (ADMIN) | Ažuriraj suca |
 | DELETE | /api/admin/referees/{id}   | Da (ADMIN) | Obriši suca |
-| POST   | /api/matches/{id}/rate          | Da         | Ocijeni utakmicu (1-10), upsert |
-| POST   | /api/matches/{id}/rate-referee  | Da         | Ocijeni suca (1-10), upsert |
-| POST   | /api/matches/{id}/rate-atmosphere | Da       | Ocijeni atmosferu (1-10), upsert |
-| POST   | /api/matches/{id}/rate-players  | Da         | Ocijeni igrače — lista [{playerId, rating, bestPlayer, worstPlayer}], upsert |
-| GET    | /api/matches/{id}/ratings       | Da         | Prosjeci svih ocjena + best/worst glasovi po igraču |
+| GET    | /api/admin/users           | Da (ADMIN) | Lista svih korisnika |
+| PUT    | /api/admin/users/{id}/block| Da (ADMIN) | Blokiraj/odblokiraj korisnika |
 
 ## Security
 
@@ -148,7 +146,12 @@ GET /standings?league={id}&season=2025      → ljestvica
 
 ## TODO — Endpointi koji nedostaju
 
-- [ ] `PUT  /api/admin/users/{id}/block` — blokiranje korisnika
+- [ ] `POST /api/matches/{id}/rate` — ocijeni utakmicu (MatchRating)
+- [ ] `POST /api/matches/{id}/rate-referee` — ocijeni suca (RefereeRating)
+- [ ] `POST /api/matches/{id}/rate-atmosphere` — ocijeni atmosferu (AtmosphereRating)
+- [ ] `POST /api/matches/{id}/rate-players` — ocijeni igrača (PlayerRating)
+- [ ] `GET  /api/matches/{id}/ratings` — prosjeci ocjena utakmice
+- [x] `PUT  /api/admin/users/{id}/block` — blokiranje korisnika
 - [ ] `@Scheduled` dnevni job za automatski sync
 
 ## Napomene

@@ -38,9 +38,9 @@
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/tinmerunka/hnl-rate.git&quot;,
-    &quot;accountId&quot;: &quot;e3bef959-f1b2-4274-803b-3dcee04a5dc0&quot;
+    &quot;accountId&quot;: &quot;6a869b7f-a2b6-453a-aed2-b821e770bbfc&quot;
   }
-}</component>
+}]]></component>
   <component name="KubernetesApiPersistence">{}</component>
   <component name="KubernetesApiProvider">{
   &quot;isMigrated&quot;: true
@@ -80,12 +80,13 @@
     "ignore.virus.scanning.warn.message": "true",
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/meri4/Desktop/OICAR/hnl-rate/backend",
+    "last_opened_file_path": "C:/Users/gabri/Desktop/OICAR/hnl-rate/backend",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
     "to.speed.mode.migration.done": "true",
     "vue.rearranger.settings.migration": "true"
   },
@@ -109,6 +110,7 @@
         <ENTRIES>
           <ENTRY IS_ENABLED="true" PARSER="runconfig" IS_EXECUTABLE="false" />
           <ENTRY IS_ENABLED="true" PARSER="env" IS_EXECUTABLE="false" PATH=".env" />
+          <ENTRY IS_ENABLED="true" PARSER="env" IS_EXECUTABLE="false" PATH=".env" />
         </ENTRIES>
       </extension>
       <method v="2">
@@ -119,8 +121,7 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.26830.84" />
-        <option value="bundled-js-predefined-d6986cc7102b-3aa1da707db6-JavaScript-IU-252.26830.84" />
+        <option value="bundled-jdk-30f59d01ecdd-cffe25b9f5b3-intellij.indexing.shared.core-IU-253.28294.334" />
       </set>
     </attachedChunks>
   </component>
@@ -150,6 +151,7 @@
       <workItem from="1775668397612" duration="798000" />
       <workItem from="1775669868261" duration="1661000" />
       <workItem from="1776087034188" duration="1911000" />
+      <workItem from="1776850457274" duration="1600000" />
     </task>
     <task id="LOCAL-00001" summary="test">
       <option name="closed" value="true" />
