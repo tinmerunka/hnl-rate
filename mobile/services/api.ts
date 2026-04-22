@@ -1,5 +1,5 @@
 import API_BASE_URL from "@/constants/config";
-import { Club, Match, MatchLineup, MatchRatings, Player, PlayerRatingInput, UserProfile } from "@/context/auth";
+import { Club, Match, MatchLineup, MatchRatings, Player, PlayerRatingInput, UserMatchRating, UserProfile } from "@/context/auth";
 import { tokenStore } from "@/services/tokenStore";
 import * as SecureStore from "expo-secure-store";
 
@@ -114,6 +114,10 @@ export async function getPlayersByClub(
   token: string,
 ): Promise<Player[]> {
   return authFetch(`/api/players?clubId=${clubId}`, token);
+}
+
+export async function getUserRatings(token: string): Promise<UserMatchRating[]> {
+  return authFetch('/api/user/ratings', token);
 }
 
 export async function getMatchRatings(matchId: number, token: string): Promise<MatchRatings> {

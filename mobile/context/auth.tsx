@@ -69,6 +69,26 @@ export interface UserProfile {
   favoriteClub: Club | null;
 }
 
+export interface UserMatchRating {
+  matchId: number;
+  homeClub: string;
+  awayClub: string;
+  date: string;
+  round: number;
+  result: string;
+  matchRating: { rating: number; comment: string | null } | null;
+  refereeRating: { rating: number; comment: string | null } | null;
+  atmosphereRating: { rating: number; comment: string | null } | null;
+  playerRatings: {
+    playerId: number;
+    firstName: string;
+    lastName: string;
+    rating: number;
+    bestPlayer: boolean;
+    worstPlayer: boolean;
+  }[];
+}
+
 export interface PlayerRatingInput {
   playerId: number;
   rating: number;

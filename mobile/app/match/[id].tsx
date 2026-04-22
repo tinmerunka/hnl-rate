@@ -1,5 +1,5 @@
 import { LineupPlayer, Match, MatchLineup, MatchRatings, PlayerRatingResult, TeamLineup, useAuth } from '@/context/auth';
-import { getMatch, getMatchLineup, getMatchRatings, rateAtmosphere, rateMatch, ratePlayers, rateReferee } from '@/services/api';
+import { getMatch, getMatchLineup, getMatchRatings, getUserRatings, rateAtmosphere, rateMatch, ratePlayers, rateReferee } from '@/services/api';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -11,6 +11,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -212,7 +213,7 @@ function PastMatchLayout({
       {lineupLoading ? (
         <ActivityIndicator color="#CC0000" style={{ marginTop: 12 }} />
       ) : lineup ? (
-        <LineupSection lineup={lineup} />
+        <PitchView lineup={lineup} />
       ) : (
         <View style={styles.noLineup}>
           <Text style={styles.noLineupText}>Lineup not available.</Text>
@@ -232,88 +233,208 @@ function PastMatchLayout({
   );
 }
 
-/* ── Lineup section ──────────────────────────────────────────── */
+/* ── Pitch view ──────────────────────────────────────────────── */
 
-function LineupSection({ lineup }: { lineup: MatchLineup }) {
-  const homeName = lineup.homeTeam.club.shortName ?? lineup.homeTeam.club.name;
-  const awayName = lineup.awayTeam.club.shortName ?? lineup.awayTeam.club.name;
+const CHIP = 30;
+const WRAP = 46;
 
+// Fallback row if no grid: infer from position string
+function posToRow(position: string | undefined): number {
+  if (!position) return 3;
+  if (position === 'Goalkeeper') return 1;
+  if (position === 'Defender') return 2;
+  if (position === 'Midfielder') return 3;
+  return 4; // Attacker or unknown
+}
+
+function computeFormation(players: LineupPlayer[]): string {
+  const rowMap = new Map<number, number>();
+  for (const p of players) {
+    const row = p.grid ? parseInt(p.grid.split(':')[0], 10) : posToRow(p.position);
+    rowMap.set(row, (rowMap.get(row) ?? 0) + 1);
+  }
+  const rows = Array.from(rowMap.keys()).sort((a, b) => a - b);
+  return rows.slice(1).map(r => rowMap.get(r)!).join('-');
+}
+
+function computePositions(
+  players: LineupPlayer[],
+  isHome: boolean,
+  pW: number,
+  pH: number,
+): { player: LineupPlayer; x: number; y: number }[] {
+  // Group by row — use grid if available, otherwise infer from position
+  const rowMap = new Map<number, LineupPlayer[]>();
+  for (const p of players) {
+    const row = p.grid ? parseInt(p.grid.split(':')[0], 10) : posToRow(p.position);
+    if (!rowMap.has(row)) rowMap.set(row, []);
+    rowMap.get(row)!.push(p);
+  }
+
+  const sortedRows = Array.from(rowMap.keys()).sort((a, b) => a - b);
+  const numRows = sortedRows.length;
+  const halfH = pH / 2;
+  const padEdge = 34;
+  const padCenter = 20;
+
+  return sortedRows.flatMap((row, rowIndex) => {
+    // Sort within row by grid column if available, else by original order
+    const rowPlayers = rowMap.get(row)!.sort((a, b) => {
+      const colA = a.grid ? parseInt(a.grid.split(':')[1], 10) : 0;
+      const colB = b.grid ? parseInt(b.grid.split(':')[1], 10) : 0;
+      return colA - colB;
+    });
+    const n = rowPlayers.length;
+    const frac = rowIndex / Math.max(numRows - 1, 1);
+    const y = isHome
+      ? padEdge + frac * (halfH - padEdge - padCenter)
+      : pH - padEdge - frac * (halfH - padEdge - padCenter);
+
+    return rowPlayers.map((player, i) => ({
+      player,
+      x: (i + 1) / (n + 1) * pW,
+      y,
+    }));
+  });
+}
+
+function PitchView({ lineup }: { lineup: MatchLineup }) {
+  const { width } = useWindowDimensions();
+  const pW = width - 40;
+  const pH = Math.round(pW * 1.45);
+  const halfH = pH / 2;
+
+  const homePos = computePositions(lineup.homeTeam.startingXI, true, pW, pH);
+  const awayPos = computePositions(lineup.awayTeam.startingXI, false, pW, pH);
   const hasBench = lineup.homeTeam.bench.length > 0 || lineup.awayTeam.bench.length > 0;
 
+  const homeName = lineup.homeTeam.club.shortName ?? lineup.homeTeam.club.name;
+  const awayName = lineup.awayTeam.club.shortName ?? lineup.awayTeam.club.name;
+  const homeFormation = computeFormation(lineup.homeTeam.startingXI);
+  const awayFormation = computeFormation(lineup.awayTeam.startingXI);
+
+  const penW = pW * 0.56;
+  const penH = pH * 0.125;
+  const penLeft = (pW - penW) / 2;
+  const goalW = pW * 0.28;
+  const goalH = pH * 0.055;
+  const goalLeft = (pW - goalW) / 2;
+  const numStripes = 8;
+
   return (
-    <View>
-      {/* Column headers */}
-      <View style={lup.colHeaders}>
-        <Text style={lup.colHeaderLeft} numberOfLines={1}>{homeName.toUpperCase()}</Text>
-        <Text style={lup.colHeaderRight} numberOfLines={1}>{awayName.toUpperCase()}</Text>
-      </View>
+    <View style={{ marginBottom: 16 }}>
+      <View style={[pitchSt.field, { width: pW, height: pH }]}>
 
-      {/* Starting XI */}
-      <View style={lup.sectionHeader}>
-        <View style={lup.sectionLine} />
-        <Text style={lup.sectionTitle}>STARTING XI</Text>
-        <View style={lup.sectionLine} />
-      </View>
+        {/* Grass stripes */}
+        {Array.from({ length: numStripes }).map((_, i) => (
+          <View key={i} style={[pitchSt.stripe, {
+            top: i * (pH / numStripes),
+            height: pH / numStripes,
+            opacity: i % 2 === 0 ? 0.06 : 0,
+          }]} />
+        ))}
 
-      <View style={lup.card}>
-        <View style={lup.columns}>
-          <View style={lup.col}>
-            {lineup.homeTeam.startingXI.map((p, i) => (
-              <PlayerChip
-                key={p.id}
-                player={p}
-                side="left"
-                last={i === lineup.homeTeam.startingXI.length - 1 && !hasBench}
-              />
-            ))}
-          </View>
-          <View style={lup.divider} />
-          <View style={lup.col}>
-            {lineup.awayTeam.startingXI.map((p, i) => (
-              <PlayerChip
-                key={p.id}
-                player={p}
-                side="right"
-                last={i === lineup.awayTeam.startingXI.length - 1 && !hasBench}
-              />
-            ))}
-          </View>
+        {/* Outer border */}
+        <View style={[pitchSt.line, { top: 10, left: 10, right: 10, height: 1 }]} />
+        <View style={[pitchSt.line, { bottom: 10, left: 10, right: 10, height: 1 }]} />
+        <View style={[pitchSt.line, { top: 10, left: 10, bottom: 10, width: 1 }]} />
+        <View style={[pitchSt.line, { top: 10, right: 10, bottom: 10, width: 1 }]} />
+
+        {/* Center line */}
+        <View style={[pitchSt.line, { top: halfH, left: 10, right: 10, height: 1 }]} />
+
+        {/* Center circle */}
+        <View style={[pitchSt.centerCircle, { top: halfH - 40, left: pW / 2 - 40 }]} />
+        <View style={[pitchSt.dot, { top: halfH - 3, left: pW / 2 - 3 }]} />
+
+        {/* Penalty areas */}
+        <View style={[pitchSt.penArea, { top: 10, left: penLeft, width: penW, height: penH }]} />
+        <View style={[pitchSt.penArea, { bottom: 10, left: penLeft, width: penW, height: penH }]} />
+
+        {/* Goal areas */}
+        <View style={[pitchSt.penArea, { top: 10, left: goalLeft, width: goalW, height: goalH }]} />
+        <View style={[pitchSt.penArea, { bottom: 10, left: goalLeft, width: goalW, height: goalH }]} />
+
+        {/* Team + formation labels */}
+        <View style={[pitchSt.teamLabel, { top: 14, left: 16 }]}>
+          <Text style={pitchSt.teamLabelText} numberOfLines={1}>{homeName.toUpperCase()}</Text>
+          {homeFormation ? <Text style={pitchSt.formationText}>{homeFormation}</Text> : null}
+        </View>
+        <View style={[pitchSt.teamLabel, { bottom: 14, right: 16, alignItems: 'flex-end' }]}>
+          <Text style={pitchSt.teamLabelText} numberOfLines={1}>{awayName.toUpperCase()}</Text>
+          {awayFormation ? <Text style={pitchSt.formationText}>{awayFormation}</Text> : null}
         </View>
 
-        {/* Bench */}
-        {hasBench && (
-          <>
-            <View style={lup.benchDivider}>
-              <View style={lup.benchLine} />
-              <Text style={lup.benchTitle}>BENCH</Text>
-              <View style={lup.benchLine} />
-            </View>
-            <View style={lup.columns}>
-              <View style={lup.col}>
-                {lineup.homeTeam.bench.map((p, i) => (
-                  <PlayerChip
-                    key={p.id}
-                    player={p}
-                    side="left"
-                    last={i === lineup.homeTeam.bench.length - 1}
-                  />
-                ))}
-              </View>
-              <View style={lup.divider} />
-              <View style={lup.col}>
-                {lineup.awayTeam.bench.map((p, i) => (
-                  <PlayerChip
-                    key={p.id}
-                    player={p}
-                    side="right"
-                    last={i === lineup.awayTeam.bench.length - 1}
-                  />
-                ))}
-              </View>
-            </View>
-          </>
-        )}
+        {/* Players */}
+        {homePos.map(({ player, x, y }) => (
+          <PlayerDot key={player.id} player={player} x={x} y={y} isHome />
+        ))}
+        {awayPos.map(({ player, x, y }) => (
+          <PlayerDot key={player.id} player={player} x={x} y={y} isHome={false} />
+        ))}
       </View>
+
+      {hasBench && <BenchSection homeTeam={lineup.homeTeam} awayTeam={lineup.awayTeam} />}
+    </View>
+  );
+}
+
+function PlayerDot({ player, x, y, isHome }: {
+  player: LineupPlayer; x: number; y: number; isHome: boolean;
+}) {
+  return (
+    <View style={[pitchSt.playerWrap, { left: x - WRAP / 2, top: y - CHIP / 2 - 5 }]}>
+      <View style={[pitchSt.chipRing, isHome ? pitchSt.chipRingHome : pitchSt.chipRingAway]}>
+        <View style={[pitchSt.chip, isHome ? pitchSt.chipHome : pitchSt.chipAway]}>
+          <Text style={[pitchSt.chipNum, isHome ? pitchSt.chipNumHome : pitchSt.chipNumAway]}>
+            {player.number ?? '?'}
+          </Text>
+        </View>
+      </View>
+      <Text style={pitchSt.chipName} numberOfLines={1}>{player.lastName}</Text>
+    </View>
+  );
+}
+
+function BenchSection({ homeTeam, awayTeam }: { homeTeam: TeamLineup; awayTeam: TeamLineup }) {
+  const homeName = homeTeam.club.shortName ?? homeTeam.club.name;
+  const awayName = awayTeam.club.shortName ?? awayTeam.club.name;
+  const maxLen = Math.max(homeTeam.bench.length, awayTeam.bench.length);
+
+  return (
+    <View style={pitchSt.benchCard}>
+      <View style={pitchSt.benchHeader}>
+        <Text style={pitchSt.benchTeamLeft} numberOfLines={1}>{homeName.toUpperCase()}</Text>
+        <Text style={pitchSt.benchLabel}>BENCH</Text>
+        <Text style={pitchSt.benchTeamRight} numberOfLines={1}>{awayName.toUpperCase()}</Text>
+      </View>
+      {Array.from({ length: maxLen }).map((_, i) => {
+        const hp = homeTeam.bench[i];
+        const ap = awayTeam.bench[i];
+        return (
+          <View key={i} style={[pitchSt.benchRow, i < maxLen - 1 && pitchSt.benchRowBorder]}>
+            <View style={pitchSt.benchCell}>
+              {hp && <>
+                <Text style={pitchSt.benchNum}>{hp.number ?? '—'}</Text>
+                <Text style={pitchSt.benchName} numberOfLines={1}>{hp.lastName}</Text>
+                <View style={[pitchSt.posBadge, { backgroundColor: POS_COLOR[hp.position ?? ''] ?? '#1A1A1A' }]}>
+                  <Text style={pitchSt.posText}>{POS_SHORT[hp.position ?? ''] ?? '—'}</Text>
+                </View>
+              </>}
+            </View>
+            <View style={pitchSt.benchDivider} />
+            <View style={[pitchSt.benchCell, pitchSt.benchCellRight]}>
+              {ap && <>
+                <View style={[pitchSt.posBadge, { backgroundColor: POS_COLOR[ap.position ?? ''] ?? '#1A1A1A' }]}>
+                  <Text style={pitchSt.posText}>{POS_SHORT[ap.position ?? ''] ?? '—'}</Text>
+                </View>
+                <Text style={[pitchSt.benchName, { textAlign: 'right' }]} numberOfLines={1}>{ap.lastName}</Text>
+                <Text style={pitchSt.benchNum}>{ap.number ?? '—'}</Text>
+              </>}
+            </View>
+          </View>
+        );
+      })}
     </View>
   );
 }
@@ -359,38 +480,6 @@ function InfoRow({
   );
 }
 
-function PlayerChip({
-  player, side, last,
-}: {
-  player: LineupPlayer; side: 'left' | 'right'; last: boolean;
-}) {
-  const pos = player.position
-    ? (POS_SHORT[player.position] ?? player.position.slice(0, 2).toUpperCase())
-    : '—';
-  const posColor = POS_COLOR[player.position ?? ''] ?? '#1A1A1A';
-
-  return (
-    <View style={[lup.chip, !last && lup.chipBorder]}>
-      {side === 'left' ? (
-        <>
-          <Text style={lup.number}>{player.number ?? '—'}</Text>
-          <Text style={lup.name} numberOfLines={1}>{player.lastName}</Text>
-          <View style={[lup.posBadge, { backgroundColor: posColor }]}>
-            <Text style={lup.posText}>{pos}</Text>
-          </View>
-        </>
-      ) : (
-        <>
-          <View style={[lup.posBadge, { backgroundColor: posColor }]}>
-            <Text style={lup.posText}>{pos}</Text>
-          </View>
-          <Text style={[lup.name, { textAlign: 'right' }]} numberOfLines={1}>{player.lastName}</Text>
-          <Text style={lup.number}>{player.number ?? '—'}</Text>
-        </>
-      )}
-    </View>
-  );
-}
 
 /* ── Ratings section ─────────────────────────────────────────── */
 
@@ -413,6 +502,21 @@ function RatingsSection({
 
   useEffect(() => {
     getMatchRatings(matchId, token).then(setCommunityRatings).catch(() => {});
+
+    getUserRatings(token).then(allRatings => {
+      const mine = allRatings.find(r => r.matchId === matchId);
+      if (!mine) return;
+      if (mine.matchRating) setMatchRating(mine.matchRating.rating);
+      if (mine.refereeRating) setRefereeRating(mine.refereeRating.rating);
+      if (mine.atmosphereRating) setAtmosphereRating(mine.atmosphereRating.rating);
+      if (mine.playerRatings.length > 0) {
+        const inputs: Record<number, PlayerInput> = {};
+        for (const p of mine.playerRatings) {
+          inputs[p.playerId] = { rating: p.rating, best: p.bestPlayer, worst: p.worstPlayer };
+        }
+        setPlayerInputs(inputs);
+      }
+    }).catch(() => {});
   }, [matchId, token]);
 
   function setPlayerRating(playerId: number, rating: number | null) {
@@ -738,65 +842,119 @@ const styles = StyleSheet.create({
   noLineupText: { color: '#333333', fontSize: 13 },
 });
 
-const lup = StyleSheet.create({
-  colHeaders: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    marginBottom: 10, paddingHorizontal: 2,
+const pitchSt = StyleSheet.create({
+  field: {
+    backgroundColor: '#1E7022',
+    borderRadius: 12,
+    overflow: 'hidden',
+    position: 'relative',
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 6,
   },
-  colHeaderLeft: {
-    flex: 1, fontSize: 11, fontWeight: '800',
-    color: '#CC0000', letterSpacing: 1,
+  stripe: {
+    position: 'absolute', left: 0, right: 0,
+    backgroundColor: '#000000',
   },
-  colHeaderRight: {
-    flex: 1, fontSize: 11, fontWeight: '800',
-    color: '#CC0000', letterSpacing: 1,
-    textAlign: 'right',
+  line: {
+    position: 'absolute',
+    backgroundColor: 'rgba(255,255,255,0.28)',
+  },
+  centerCircle: {
+    position: 'absolute',
+    width: 80, height: 80, borderRadius: 40,
+    borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.28)',
+  },
+  dot: {
+    position: 'absolute',
+    width: 6, height: 6, borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.45)',
+  },
+  penArea: {
+    position: 'absolute',
+    borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.28)',
+    backgroundColor: 'transparent',
   },
 
-  sectionHeader: {
-    flexDirection: 'row', alignItems: 'center',
-    gap: 8, marginBottom: 8,
+  teamLabel: { position: 'absolute' },
+  teamLabelText: {
+    fontSize: 9, fontWeight: '800', color: 'rgba(255,255,255,0.55)',
+    letterSpacing: 0.8,
   },
-  sectionLine: { flex: 1, height: 1, backgroundColor: '#1E1E1E' },
-  sectionTitle: {
-    fontSize: 10, fontWeight: '800', color: '#444444', letterSpacing: 1.2,
+  formationText: {
+    fontSize: 11, fontWeight: '900', color: 'rgba(255,255,255,0.75)',
+    letterSpacing: 0.5, marginTop: 1,
   },
 
-  card: {
-    backgroundColor: '#111111', borderRadius: 12,
-    borderWidth: 1, borderColor: '#1E1E1E',
+  playerWrap: {
+    position: 'absolute',
+    width: WRAP,
+    alignItems: 'center',
+  },
+  chipRing: {
+    width: CHIP + 4, height: CHIP + 4, borderRadius: (CHIP + 4) / 2,
+    justifyContent: 'center', alignItems: 'center',
+    shadowColor: '#000', shadowOpacity: 0.6, shadowRadius: 4, elevation: 5,
+  },
+  chipRingHome: { backgroundColor: 'rgba(255,255,255,0.25)' },
+  chipRingAway: { backgroundColor: 'rgba(180,0,0,0.35)' },
+  chip: {
+    width: CHIP, height: CHIP, borderRadius: CHIP / 2,
+    justifyContent: 'center', alignItems: 'center',
+  },
+  chipHome: { backgroundColor: '#FFFFFF' },
+  chipAway: { backgroundColor: '#CC0000' },
+  chipNum: { fontSize: 11, fontWeight: '800' },
+  chipNumHome: { color: '#111111' },
+  chipNumAway: { color: '#FFFFFF' },
+  chipName: {
+    fontSize: 8, fontWeight: '700', color: '#FFFFFF',
+    textAlign: 'center', marginTop: 3, maxWidth: WRAP,
+    textShadowColor: 'rgba(0,0,0,0.95)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+
+  benchCard: {
+    backgroundColor: '#0F0F0F', borderRadius: 12,
+    borderWidth: 1, borderColor: '#222222',
     overflow: 'hidden', marginBottom: 20,
   },
-  columns: { flexDirection: 'row' },
-  col: { flex: 1 },
-  divider: { width: 1, backgroundColor: '#1E1E1E' },
-
-  benchDivider: {
+  benchHeader: {
     flexDirection: 'row', alignItems: 'center',
-    gap: 8, paddingHorizontal: 12, paddingVertical: 8,
-    borderTopWidth: 1, borderTopColor: '#1E1E1E',
-    backgroundColor: '#0A0A0A',
+    paddingHorizontal: 14, paddingVertical: 10,
+    borderBottomWidth: 1, borderBottomColor: '#1A1A1A',
+    backgroundColor: '#080808',
   },
-  benchLine: { flex: 1, height: 1, backgroundColor: '#2A2A2A' },
-  benchTitle: {
-    fontSize: 9, fontWeight: '800', color: '#333333', letterSpacing: 1.2,
+  benchTeamLeft: {
+    flex: 1, fontSize: 10, fontWeight: '800', color: '#CC0000', letterSpacing: 0.8,
   },
-
-  chip: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 8, paddingVertical: 9,
-    gap: 4,
+  benchTeamRight: {
+    flex: 1, fontSize: 10, fontWeight: '800', color: '#CC0000',
+    letterSpacing: 0.8, textAlign: 'right',
   },
-  chipBorder: { borderBottomWidth: 1, borderBottomColor: '#1A1A1A' },
-  number: {
-    width: 20, fontSize: 10, fontWeight: '700',
-    color: '#444444', textAlign: 'center',
+  benchLabel: {
+    fontSize: 9, fontWeight: '800', color: '#333333',
+    letterSpacing: 1.5, marginHorizontal: 10,
   },
-  name: { flex: 1, fontSize: 11, fontWeight: '500', color: '#CCCCCC' },
+  benchRow: { flexDirection: 'row', alignItems: 'stretch' },
+  benchRowBorder: { borderBottomWidth: 1, borderBottomColor: '#1A1A1A' },
+  benchCell: {
+    flex: 1, flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 10, paddingVertical: 9, gap: 5,
+  },
+  benchCellRight: { justifyContent: 'flex-end' },
+  benchDivider: { width: 1, backgroundColor: '#1E1E1E', alignSelf: 'stretch' },
+  benchNum: {
+    width: 18, fontSize: 10, fontWeight: '700',
+    color: '#3A3A3A', textAlign: 'center',
+  },
+  benchName: { flex: 1, fontSize: 12, fontWeight: '500', color: '#BBBBBB' },
   posBadge: {
-    width: 22, height: 16, borderRadius: 3,
-    justifyContent: 'center', alignItems: 'center',
-    flexShrink: 0,
+    width: 24, height: 17, borderRadius: 4,
+    justifyContent: 'center', alignItems: 'center', flexShrink: 0,
   },
   posText: { fontSize: 8, fontWeight: '800', color: '#AAAAAA' },
 });
