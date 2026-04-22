@@ -77,6 +77,7 @@ src/main/java/com/hnlrate/backend/
 | POST   | /api/auth/refresh          | Ne         | Obnovi access token (čita iz cookie, fallback na body) |
 | POST   | /api/auth/logout           | Ne         | Revokacija refresh tokena, briše HttpOnly cookie |
 | GET    | /api/user/me               | Da         | Profil prijavljenog korisnika |
+| GET    | /api/user/ratings          | Da         | Sve moje ocjene grupirane po utakmici (My Ratings) |
 | GET    | /api/clubs                 | Da         | Dohvati sve klubove |
 | GET    | /api/clubs/{id}            | Da         | Detalji kluba |
 | POST   | /api/clubs/{id}/favorite   | Da         | Postavi klub kao omiljeni |

@@ -87,18 +87,15 @@ Backend ima solidne temelje (modeli, auth, JWT, CRUD admin endpointi, lineup syn
 - [x] `POST/PUT/DELETE /api/admin/players`
 - [x] `POST/PUT/DELETE /api/admin/referees`
 
-### Faza 4 — Rating endpointi
+### Faza 4 — Rating endpointi ✅
 
 *Ocjenjivanje moguće samo za `match.finished = true`*
 
-- [ ] `POST /api/matches/{id}/rate` — ocijeni utakmicu (MatchRating)
-- [ ] `GET  /api/matches/{id}/ratings` — ocjene + prosjek
-- [ ] `POST /api/matches/{id}/rate-referee` — ocijeni suca (RefereeRating)
-- [ ] `GET  /api/matches/{id}/referee-ratings`
-- [ ] `POST /api/matches/{id}/rate-atmosphere` — ocijeni atmosferu
-- [ ] `GET  /api/matches/{id}/atmosphere-ratings`
-- [ ] `POST /api/matches/{matchId}/rate-players/{playerId}` — ocijeni igrača
-- [ ] `GET  /api/matches/{matchId}/player-ratings` — sve ocjene igrača
+- [x] `POST /api/matches/{id}/rate` — ocijeni utakmicu (MatchRating), upsert
+- [x] `POST /api/matches/{id}/rate-referee` — ocijeni suca (RefereeRating), upsert
+- [x] `POST /api/matches/{id}/rate-atmosphere` — ocijeni atmosferu (AtmosphereRating), upsert
+- [x] `POST /api/matches/{id}/rate-players` — ocijeni igrače (lista PlayerRatingRequestDTO), upsert
+- [x] `GET  /api/matches/{id}/ratings` — prosjeci svih ocjena + glasovi za best/worst igrača
 
 ### Faza 5 — Admin upravljanje korisnicima
 

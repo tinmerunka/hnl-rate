@@ -44,7 +44,7 @@
     &quot;url&quot;: &quot;https://github.com/tinmerunka/hnl-rate.git&quot;,
     &quot;accountId&quot;: &quot;6a869b7f-a2b6-453a-aed2-b821e770bbfc&quot;
   }
-}</component>
+}]]></component>
   <component name="KubernetesApiPersistence">{}</component>
   <component name="KubernetesApiProvider">{
   &quot;isMigrated&quot;: true
@@ -154,6 +154,7 @@
       <workItem from="1775668397612" duration="798000" />
       <workItem from="1775669868261" duration="1661000" />
       <workItem from="1776087034188" duration="1911000" />
+      <workItem from="1776850457274" duration="1600000" />
     </task>
     <task id="LOCAL-00001" summary="test">
       <option name="closed" value="true" />
