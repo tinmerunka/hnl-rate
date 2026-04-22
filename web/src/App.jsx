@@ -6,6 +6,8 @@ import Dashboard from './pages/dashboard/Dashboard';
 import Clubs from './pages/dashboard/Clubs';
 import Matches from './pages/dashboard/Matches';
 import Players from './pages/dashboard/Players';
+import Referees from './pages/dashboard/Referees';
+import Users from './pages/dashboard/Users';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -30,8 +32,10 @@ function App() {
           <Route path="/dashboard"          element={<DashboardRoute><Dashboard /></DashboardRoute>} />
           <Route path="/dashboard/clubs"    element={<DashboardRoute><Clubs /></DashboardRoute>} />
           <Route path="/dashboard/matches"  element={<DashboardRoute><Matches /></DashboardRoute>} />
-          <Route path="/dashboard/players"  element={<DashboardRoute><Players /></DashboardRoute>} />
-          <Route path="*"                   element={<Navigate to="/dashboard" />} />
+          <Route path="/dashboard/players"   element={<DashboardRoute><Players /></DashboardRoute>} />
+          <Route path="/dashboard/referees"  element={<DashboardRoute><Referees /></DashboardRoute>} />
+          <Route path="/dashboard/users"     element={<DashboardRoute><Users /></DashboardRoute>} />
+          <Route path="*"                    element={<Navigate to="/dashboard" />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

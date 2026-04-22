@@ -104,6 +104,8 @@ src/main/java/com/hnlrate/backend/
 | POST   | /api/admin/referees        | Da (ADMIN) | Kreiraj suca |
 | PUT    | /api/admin/referees/{id}   | Da (ADMIN) | Ažuriraj suca |
 | DELETE | /api/admin/referees/{id}   | Da (ADMIN) | Obriši suca |
+| GET    | /api/admin/users           | Da (ADMIN) | Lista svih korisnika |
+| PUT    | /api/admin/users/{id}/block| Da (ADMIN) | Blokiraj/odblokiraj korisnika |
 
 ## Security
 
@@ -148,7 +150,7 @@ GET /standings?league={id}&season=2025      → ljestvica
 - [ ] `POST /api/matches/{id}/rate-atmosphere` — ocijeni atmosferu (AtmosphereRating)
 - [ ] `POST /api/matches/{id}/rate-players` — ocijeni igrača (PlayerRating)
 - [ ] `GET  /api/matches/{id}/ratings` — prosjeci ocjena utakmice
-- [ ] `PUT  /api/admin/users/{id}/block` — blokiranje korisnika
+- [x] `PUT  /api/admin/users/{id}/block` — blokiranje korisnika
 - [ ] `@Scheduled` dnevni job za automatski sync
 
 ## Napomene
