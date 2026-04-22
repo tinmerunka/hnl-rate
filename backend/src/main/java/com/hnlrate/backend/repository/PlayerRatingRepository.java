@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface PlayerRatingRepository extends JpaRepository<PlayerRating,Integer> {
     List<PlayerRating> findByMatchId(Integer matchId);
     Optional<PlayerRating> findByPlayerIdAndMatchIdAndUserId(Integer playerId, Integer matchId, Integer userId);
+    List<PlayerRating> findByUserId(Integer userId);
 }
