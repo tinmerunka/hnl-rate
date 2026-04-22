@@ -4,6 +4,7 @@ import com.hnlrate.backend.dto.ClubDTO;
 import com.hnlrate.backend.dto.MatchDTO;
 import com.hnlrate.backend.dto.PlayerDTO;
 import com.hnlrate.backend.dto.RefereeDTO;
+import com.hnlrate.backend.dto.UserAdminDTO;
 import com.hnlrate.backend.dto.request.ClubRequest;
 import com.hnlrate.backend.dto.request.MatchRequest;
 import com.hnlrate.backend.dto.request.PlayerRequest;
@@ -12,11 +13,13 @@ import com.hnlrate.backend.model.Club;
 import com.hnlrate.backend.model.Match;
 import com.hnlrate.backend.model.Player;
 import com.hnlrate.backend.model.Referee;
+import com.hnlrate.backend.model.User;
 import com.hnlrate.backend.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -29,6 +32,7 @@ public class AdminController {
     private final MatchService matchService;
     private final PlayerService playerService;
     private final RefereeService refereeService;
+    private final UserService userService;
 
     // ── Sync ────────────────────────────────────────────────────────────────
 
@@ -191,5 +195,23 @@ public class AdminController {
     public ResponseEntity<Void> deleteReferee(@PathVariable Integer id) {
         refereeService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // ── Users ─────────────────────────────────────────────────────────────────
+
+    @GetMapping("/users")
+    public ResponseEntity<List<UserAdminDTO>> getUsers() {
+        return ResponseEntity.ok(userService.getAll().stream().map(UserAdminDTO::new).toList());
+    }
+
+    @PutMapping("/users/{id}/block")
+    public ResponseEntity<UserAdminDTO> blockUser(
+            @PathVariable Integer id,
+            @RequestBody Map<String, Boolean> body) {
+        User user = userService.getById(id)
+                .orElseThrow(() -> new RuntimeException("Korisnik nije pronađen"));
+        Boolean blocked = body.get("blocked");
+        user.setBlocked(blocked != null ? blocked : !user.getBlocked());
+        return ResponseEntity.ok(new UserAdminDTO(userService.save(user)));
     }
 }
