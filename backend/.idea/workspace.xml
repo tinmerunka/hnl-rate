@@ -5,15 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9b2bd72d-56f1-4f89-b7b0-bf3a48e1843d" name="Changes" comment="test">
-      <change beforePath="$PROJECT_DIR$/.claude/PLAN.md" beforeDir="false" afterPath="$PROJECT_DIR$/.claude/PLAN.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/settings.local.json" beforeDir="false" afterPath="$PROJECT_DIR$/.claude/settings.local.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/data_source_mapping.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CLAUDE.md" beforeDir="false" afterPath="$PROJECT_DIR$/CLAUDE.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/controller/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/controller/AuthController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/security/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/security/SecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/AuthService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/AuthService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mobile/CLAUDE.md" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/CLAUDE.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mobile/context/auth.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/context/auth.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mobile/services/api.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/services/api.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -71,6 +65,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Maven.backend [org.apache.maven.plugins:maven-clean-plugin:3.5.0:clean].executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RequestMappingsPanelOrder0": "0",
     "RequestMappingsPanelOrder1": "1",
@@ -81,7 +76,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "Spring Boot.BackendApplication.executor": "Run",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "feature/security-refresh-token-update",
+    "git-widget-placeholder": "feature/mobile-raitings",
     "ignore.virus.scanning.warn.message": "true",
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",

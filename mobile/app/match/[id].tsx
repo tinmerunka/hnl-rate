@@ -1,5 +1,5 @@
-import { LineupPlayer, Match, MatchLineup, useAuth } from '@/context/auth';
-import { getMatch, getMatchLineup } from '@/services/api';
+import { LineupPlayer, Match, MatchLineup, MatchRatings, PlayerRatingResult, TeamLineup, useAuth } from '@/context/auth';
+import { getMatch, getMatchLineup, getMatchRatings, rateAtmosphere, rateMatch, ratePlayers, rateReferee } from '@/services/api';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -164,6 +164,7 @@ function PastMatchLayout({
   insets: { top: number };
   onBack: () => void;
 }) {
+  const { token } = useAuth();
   const homeLogo = match.homeClub.crest ?? match.homeClub.logoUrl;
   const awayLogo = match.awayClub.crest ?? match.awayClub.logoUrl;
   const [homeScore, awayScore] = match.result ? match.result.split('-') : ['?', '?'];
@@ -216,6 +217,16 @@ function PastMatchLayout({
         <View style={styles.noLineup}>
           <Text style={styles.noLineupText}>Lineup not available.</Text>
         </View>
+      )}
+
+      {/* Ratings */}
+      {token && (
+        <RatingsSection
+          matchId={match.id}
+          token={token}
+          lineup={lineup}
+          hasReferee={!!match.referee}
+        />
       )}
     </ScrollView>
   );
@@ -381,6 +392,288 @@ function PlayerChip({
   );
 }
 
+/* ── Ratings section ─────────────────────────────────────────── */
+
+type PlayerInput = { rating: number | null; best: boolean; worst: boolean };
+
+function RatingsSection({
+  matchId, token, lineup, hasReferee,
+}: {
+  matchId: number;
+  token: string;
+  lineup: MatchLineup | null;
+  hasReferee: boolean;
+}) {
+  const [communityRatings, setCommunityRatings] = useState<MatchRatings | null>(null);
+  const [matchRating, setMatchRating] = useState<number | null>(null);
+  const [refereeRating, setRefereeRating] = useState<number | null>(null);
+  const [atmosphereRating, setAtmosphereRating] = useState<number | null>(null);
+  const [playerInputs, setPlayerInputs] = useState<Record<number, PlayerInput>>({});
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    getMatchRatings(matchId, token).then(setCommunityRatings).catch(() => {});
+  }, [matchId, token]);
+
+  function setPlayerRating(playerId: number, rating: number | null) {
+    setPlayerInputs(prev => {
+      const existing = prev[playerId] ?? { rating: null, best: false, worst: false };
+      return { ...prev, [playerId]: { ...existing, rating } };
+    });
+  }
+
+  function toggleBest(playerId: number) {
+    setPlayerInputs(prev => {
+      const isNowBest = !(prev[playerId]?.best ?? false);
+      const next: Record<number, PlayerInput> = Object.fromEntries(
+        Object.entries(prev).map(([id, v]) => [id, { ...v, best: false }])
+      );
+      const existing = next[playerId] ?? { rating: null, best: false, worst: false };
+      next[playerId] = { ...existing, best: isNowBest };
+      return next;
+    });
+  }
+
+  function toggleWorst(playerId: number) {
+    setPlayerInputs(prev => {
+      const isNowWorst = !(prev[playerId]?.worst ?? false);
+      const next: Record<number, PlayerInput> = Object.fromEntries(
+        Object.entries(prev).map(([id, v]) => [id, { ...v, worst: false }])
+      );
+      const existing = next[playerId] ?? { rating: null, best: false, worst: false };
+      next[playerId] = { ...existing, worst: isNowWorst };
+      return next;
+    });
+  }
+
+  async function handleSubmit() {
+    const hasInput =
+      matchRating || refereeRating || atmosphereRating ||
+      Object.values(playerInputs).some(p => p.rating || p.best || p.worst);
+
+    if (!hasInput) {
+      Alert.alert('No ratings', 'Please select at least one rating before submitting.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const promises: Promise<void>[] = [];
+      if (matchRating) promises.push(rateMatch(matchId, matchRating, token));
+      if (refereeRating && hasReferee) promises.push(rateReferee(matchId, refereeRating, token));
+      if (atmosphereRating) promises.push(rateAtmosphere(matchId, atmosphereRating, token));
+
+      const playerRatings = Object.entries(playerInputs)
+        .filter(([, v]) => v.rating !== null || v.best || v.worst)
+        .map(([id, v]) => ({
+          playerId: Number(id),
+          rating: v.rating ?? 5,
+          bestPlayer: v.best,
+          worstPlayer: v.worst,
+        }));
+      if (playerRatings.length > 0) promises.push(ratePlayers(matchId, playerRatings, token));
+
+      await Promise.all(promises);
+      const updated = await getMatchRatings(matchId, token);
+      setCommunityRatings(updated);
+      Alert.alert('Submitted!', 'Your ratings have been saved.');
+    } catch (e: any) {
+      Alert.alert('Error', e.message ?? 'Failed to submit ratings.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <View>
+      <RatingSectionDivider title="RATE THIS MATCH" />
+
+      {communityRatings && (
+        <View style={rat.communityCard}>
+          <Text style={rat.communityTitle}>Community Averages</Text>
+          <CommunityRow label="Match" value={communityRatings.averageMatchRating} />
+          {hasReferee && <CommunityRow label="Referee" value={communityRatings.averageRefereeRating} />}
+          <CommunityRow label="Atmosphere" value={communityRatings.averageAtmosphereRating} last />
+        </View>
+      )}
+
+      <View style={rat.inputCard}>
+        <NumberPicker label="Match Quality" value={matchRating} onChange={setMatchRating} />
+        {hasReferee && <NumberPicker label="Referee" value={refereeRating} onChange={setRefereeRating} />}
+        <NumberPicker label="Atmosphere" value={atmosphereRating} onChange={setAtmosphereRating} last />
+      </View>
+
+      {lineup && (
+        <>
+          <RatingSectionDivider title="RATE PLAYERS" />
+          <PlayerRatingsInput
+            homeTeam={lineup.homeTeam}
+            awayTeam={lineup.awayTeam}
+            inputs={playerInputs}
+            communityRatings={communityRatings?.playerRatings ?? []}
+            onRatingChange={setPlayerRating}
+            onToggleBest={toggleBest}
+            onToggleWorst={toggleWorst}
+          />
+        </>
+      )}
+
+      <TouchableOpacity
+        style={[rat.submitBtn, submitting && rat.submitBtnDisabled]}
+        onPress={handleSubmit}
+        disabled={submitting}
+      >
+        {submitting
+          ? <ActivityIndicator color="#FFFFFF" size="small" />
+          : <Text style={rat.submitText}>Submit Ratings</Text>}
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+function RatingSectionDivider({ title }: { title: string }) {
+  return (
+    <View style={rat.divider}>
+      <View style={rat.dividerLine} />
+      <Text style={rat.dividerTitle}>{title}</Text>
+      <View style={rat.dividerLine} />
+    </View>
+  );
+}
+
+function CommunityRow({ label, value, last }: { label: string; value: number | null | undefined; last?: boolean }) {
+  return (
+    <View style={[rat.communityRow, !last && rat.communityRowBorder]}>
+      <Text style={rat.communityLabel}>{label}</Text>
+      <Text style={rat.communityValue}>
+        {value != null ? `★ ${value.toFixed(1)}` : '—'}
+      </Text>
+    </View>
+  );
+}
+
+function NumberPicker({ label, value, onChange, last }: {
+  label: string;
+  value: number | null;
+  onChange: (n: number) => void;
+  last?: boolean;
+}) {
+  return (
+    <View style={[rat.pickerRow, !last && rat.pickerRowBorder]}>
+      <Text style={rat.pickerLabel}>{label}</Text>
+      <View style={rat.pickerNumbers}>
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+          <TouchableOpacity
+            key={n}
+            style={[rat.numBtn, value === n && rat.numBtnSelected]}
+            onPress={() => onChange(n)}
+          >
+            <Text style={[rat.numText, value === n && rat.numTextSelected]}>{n}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function PlayerRatingsInput({
+  homeTeam, awayTeam, inputs, communityRatings, onRatingChange, onToggleBest, onToggleWorst,
+}: {
+  homeTeam: TeamLineup;
+  awayTeam: TeamLineup;
+  inputs: Record<number, PlayerInput>;
+  communityRatings: PlayerRatingResult[];
+  onRatingChange: (id: number, rating: number | null) => void;
+  onToggleBest: (id: number) => void;
+  onToggleWorst: (id: number) => void;
+}) {
+  const communityMap = new Map(communityRatings.map(p => [p.playerId, p]));
+
+  function renderTeam(team: TeamLineup) {
+    const players = [...team.startingXI, ...team.bench];
+    const teamName = team.club.shortName ?? team.club.name;
+    return (
+      <View key={team.club.id} style={rat.playerTeamBlock}>
+        <Text style={rat.playerTeamName}>{teamName.toUpperCase()}</Text>
+        <View style={rat.playerCard}>
+          {players.map((p, i) => (
+            <PlayerRatingRow
+              key={p.id}
+              player={p}
+              input={inputs[p.id]}
+              communityRating={communityMap.get(p.id)}
+              last={i === players.length - 1}
+              onRatingChange={r => onRatingChange(p.id, r)}
+              onToggleBest={() => onToggleBest(p.id)}
+              onToggleWorst={() => onToggleWorst(p.id)}
+            />
+          ))}
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View>
+      {renderTeam(homeTeam)}
+      {renderTeam(awayTeam)}
+    </View>
+  );
+}
+
+function PlayerRatingRow({
+  player, input, communityRating, last, onRatingChange, onToggleBest, onToggleWorst,
+}: {
+  player: LineupPlayer;
+  input: PlayerInput | undefined;
+  communityRating: PlayerRatingResult | undefined;
+  last: boolean;
+  onRatingChange: (rating: number | null) => void;
+  onToggleBest: () => void;
+  onToggleWorst: () => void;
+}) {
+  const pos = POS_SHORT[player.position ?? ''] ?? (player.position?.slice(0, 2).toUpperCase() ?? '—');
+  const posColor = POS_COLOR[player.position ?? ''] ?? '#1A1A1A';
+
+  return (
+    <View style={[pr.row, !last && pr.rowBorder]}>
+      <View style={pr.nameRow}>
+        <Text style={pr.number}>{player.number ?? '—'}</Text>
+        <View style={[pr.posBadge, { backgroundColor: posColor }]}>
+          <Text style={pr.posText}>{pos}</Text>
+        </View>
+        <Text style={pr.name} numberOfLines={1}>{player.lastName}</Text>
+        {communityRating?.averageRating != null && (
+          <Text style={pr.avg}>avg {communityRating.averageRating.toFixed(1)}</Text>
+        )}
+      </View>
+      <View style={pr.ratingRow}>
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+          <TouchableOpacity
+            key={n}
+            style={[pr.numBtn, input?.rating === n && pr.numBtnSelected]}
+            onPress={() => onRatingChange(input?.rating === n ? null : n)}
+          >
+            <Text style={[pr.numText, input?.rating === n && pr.numTextSelected]}>{n}</Text>
+          </TouchableOpacity>
+        ))}
+        <TouchableOpacity
+          style={[pr.toggleBtn, input?.best && pr.toggleBtnBest]}
+          onPress={onToggleBest}
+        >
+          <Text style={pr.toggleText}>★</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[pr.toggleBtn, input?.worst && pr.toggleBtnWorst]}
+          onPress={onToggleWorst}
+        >
+          <Text style={pr.toggleText}>✕</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
 /* ── Styles ──────────────────────────────────────────────────── */
 
 const styles = StyleSheet.create({
@@ -506,4 +799,104 @@ const lup = StyleSheet.create({
     flexShrink: 0,
   },
   posText: { fontSize: 8, fontWeight: '800', color: '#AAAAAA' },
+});
+
+const rat = StyleSheet.create({
+  divider: {
+    flexDirection: 'row', alignItems: 'center',
+    gap: 8, marginTop: 8, marginBottom: 16,
+  },
+  dividerLine: { flex: 1, height: 1, backgroundColor: '#1E1E1E' },
+  dividerTitle: {
+    fontSize: 10, fontWeight: '800', color: '#444444', letterSpacing: 1.2,
+  },
+
+  communityCard: {
+    backgroundColor: '#111111', borderRadius: 12,
+    borderWidth: 1, borderColor: '#1E1E1E',
+    overflow: 'hidden', marginBottom: 12,
+  },
+  communityTitle: {
+    fontSize: 11, fontWeight: '700', color: '#555555',
+    paddingHorizontal: 14, paddingTop: 10, paddingBottom: 6,
+    letterSpacing: 0.5,
+  },
+  communityRow: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingHorizontal: 14, paddingVertical: 10,
+  },
+  communityRowBorder: { borderTopWidth: 1, borderTopColor: '#1A1A1A' },
+  communityLabel: { fontSize: 13, color: '#888888' },
+  communityValue: { fontSize: 13, fontWeight: '700', color: '#CC0000' },
+
+  inputCard: {
+    backgroundColor: '#111111', borderRadius: 12,
+    borderWidth: 1, borderColor: '#1E1E1E',
+    overflow: 'hidden', marginBottom: 12,
+  },
+  pickerRow: {
+    paddingHorizontal: 14, paddingVertical: 10,
+  },
+  pickerRowBorder: { borderBottomWidth: 1, borderBottomColor: '#1A1A1A' },
+  pickerLabel: { fontSize: 13, color: '#888888', marginBottom: 8 },
+  pickerNumbers: { flexDirection: 'row', gap: 4 },
+  numBtn: {
+    width: 27, height: 27, borderRadius: 6,
+    backgroundColor: '#1A1A1A',
+    justifyContent: 'center', alignItems: 'center',
+  },
+  numBtnSelected: { backgroundColor: '#CC0000' },
+  numText: { fontSize: 11, fontWeight: '700', color: '#555555' },
+  numTextSelected: { color: '#FFFFFF' },
+
+  playerTeamBlock: { marginBottom: 16 },
+  playerTeamName: {
+    fontSize: 10, fontWeight: '800', color: '#CC0000',
+    letterSpacing: 1, marginBottom: 6,
+  },
+  playerCard: {
+    backgroundColor: '#111111', borderRadius: 12,
+    borderWidth: 1, borderColor: '#1E1E1E',
+    overflow: 'hidden',
+  },
+
+  submitBtn: {
+    backgroundColor: '#CC0000', borderRadius: 10,
+    paddingVertical: 14, alignItems: 'center',
+    marginTop: 4, marginBottom: 20,
+  },
+  submitBtnDisabled: { opacity: 0.5 },
+  submitText: { fontSize: 15, fontWeight: '800', color: '#FFFFFF', letterSpacing: 0.5 },
+});
+
+const pr = StyleSheet.create({
+  row: { paddingHorizontal: 10, paddingVertical: 8 },
+  rowBorder: { borderBottomWidth: 1, borderBottomColor: '#1A1A1A' },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 6 },
+  number: { width: 18, fontSize: 10, fontWeight: '700', color: '#444444', textAlign: 'center' },
+  posBadge: {
+    width: 22, height: 16, borderRadius: 3,
+    justifyContent: 'center', alignItems: 'center', flexShrink: 0,
+  },
+  posText: { fontSize: 8, fontWeight: '800', color: '#AAAAAA' },
+  name: { flex: 1, fontSize: 12, fontWeight: '500', color: '#CCCCCC' },
+  avg: { fontSize: 10, color: '#555555' },
+  ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  numBtn: {
+    width: 22, height: 22, borderRadius: 4,
+    backgroundColor: '#1A1A1A',
+    justifyContent: 'center', alignItems: 'center',
+  },
+  numBtnSelected: { backgroundColor: '#CC0000' },
+  numText: { fontSize: 9, fontWeight: '700', color: '#555555' },
+  numTextSelected: { color: '#FFFFFF' },
+  toggleBtn: {
+    width: 26, height: 22, borderRadius: 4,
+    backgroundColor: '#1A1A1A',
+    justifyContent: 'center', alignItems: 'center',
+    marginLeft: 4,
+  },
+  toggleBtnBest: { backgroundColor: '#2A4A00' },
+  toggleBtnWorst: { backgroundColor: '#4A0000' },
+  toggleText: { fontSize: 11, color: '#666666' },
 });

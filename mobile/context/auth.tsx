@@ -69,6 +69,29 @@ export interface UserProfile {
   favoriteClub: Club | null;
 }
 
+export interface PlayerRatingInput {
+  playerId: number;
+  rating: number;
+  bestPlayer: boolean;
+  worstPlayer: boolean;
+}
+
+export interface PlayerRatingResult {
+  playerId: number;
+  firstName: string;
+  lastName: string;
+  averageRating: number | null;
+  bestPlayerVotes: number;
+  worstPlayerVotes: number;
+}
+
+export interface MatchRatings {
+  averageMatchRating: number | null;
+  averageRefereeRating: number | null;
+  averageAtmosphereRating: number | null;
+  playerRatings: PlayerRatingResult[];
+}
+
 interface AuthContextType {
   token: string | null;
   userProfile: UserProfile | null;
