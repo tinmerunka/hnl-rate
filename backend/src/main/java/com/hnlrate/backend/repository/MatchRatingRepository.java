@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface MatchRatingRepository extends JpaRepository<MatchRating,Integer> {
     List<MatchRating> findByMatchId(Integer matchId);
     Optional<MatchRating> findByMatchIdAndUserId(Integer matchId, Integer userId);
+    List<MatchRating> findByUserId(Integer userId);
 }

@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface AtmosphereRatingRepository extends JpaRepository<AtmosphereRating,Integer> {
     List<AtmosphereRating> findByMatchId(Integer matchId);
     Optional<AtmosphereRating> findByMatchIdAndUserId(Integer matchId, Integer userId);
+    List<AtmosphereRating> findByUserId(Integer userId);
 }
