@@ -123,6 +123,7 @@ function Login() {
             <div className="flex gap-3 mt-6">
               <button
                 type="button"
+                onClick={() => navigate('/forgot-password')}
                 className="flex-1 py-[13px] bg-white/[0.08] border border-white/10 hover:border-white/25 rounded-full text-white/60 hover:text-white text-[13px] font-semibold cursor-pointer font-[inherit] transition-all duration-150"
               >
                 Zaboravili lozinku?

@@ -37,6 +37,10 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    public void updatePasswordHash(Integer userId, String passwordHash) {
+        userRepository.updatePasswordHash(userId, passwordHash);
+    }
+
     public void delete(Integer id) {
         userRepository.deleteById(id);
     }

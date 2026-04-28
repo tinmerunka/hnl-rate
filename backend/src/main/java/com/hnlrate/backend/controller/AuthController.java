@@ -1,9 +1,7 @@
 package com.hnlrate.backend.controller;
 
-import com.hnlrate.backend.dto.AuthResponseDTO;
-import com.hnlrate.backend.dto.LoginDTO;
-import com.hnlrate.backend.dto.RefreshTokenRequestDTO;
-import com.hnlrate.backend.dto.RegisterDTO;
+import com.hnlrate.backend.dto.*;
+
 import com.hnlrate.backend.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -75,6 +73,18 @@ public class AuthController {
             clearRefreshCookie(response);
         }
 
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@RequestBody ForgotPasswordDTO dto) {
+        authService.forgotPassword(dto);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@RequestBody ResetPasswordDTO dto) {
+        authService.resetPassword(dto);
         return ResponseEntity.ok().build();
     }
 

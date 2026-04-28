@@ -31,6 +31,31 @@ export const refreshToken = async () => {
     return response.json();
 };
 
+export const forgotPassword = async (email) => {
+    const response = await fetch(`${API_URL}/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+    });
+
+    if (!response.ok) {
+        throw new Error('Greška pri slanju emaila.');
+    }
+};
+
+export const resetPassword = async (token, newPassword) => {
+    const response = await fetch(`${API_URL}/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, newPassword }),
+    });
+
+    if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || 'Greška pri resetiranju lozinke.');
+    }
+};
+
 export const logout = async () => {
     try {
         await fetch(`${API_URL}/logout`, {
