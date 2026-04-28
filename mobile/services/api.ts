@@ -1,5 +1,5 @@
 import API_BASE_URL from "@/constants/config";
-import { Club, Match, MatchLineup, Player, UserProfile } from "@/context/auth";
+import { Club, Match, MatchLineup, MatchRatings, Player, PlayerRatingInput, UserMatchRating, UserProfile } from "@/context/auth";
 import { tokenStore } from "@/services/tokenStore";
 import * as SecureStore from "expo-secure-store";
 
@@ -114,6 +114,48 @@ export async function getPlayersByClub(
   token: string,
 ): Promise<Player[]> {
   return authFetch(`/api/players?clubId=${clubId}`, token);
+}
+
+export async function getUserRatings(token: string): Promise<UserMatchRating[]> {
+  return authFetch('/api/user/ratings', token);
+}
+
+export async function getMatchRatings(matchId: number, token: string): Promise<MatchRatings> {
+  return authFetch(`/api/matches/${matchId}/ratings`, token);
+}
+
+async function postRating(path: string, token: string, body: object): Promise<void> {
+  const res = await authFetchRaw(path, token, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `Request failed: ${res.status}`);
+  }
+}
+
+export async function rateMatch(matchId: number, rating: number, token: string): Promise<void> {
+  return postRating(`/api/matches/${matchId}/rate`, token, { rating });
+}
+
+export async function rateReferee(matchId: number, rating: number, token: string): Promise<void> {
+  return postRating(`/api/matches/${matchId}/rate-referee`, token, { rating });
+}
+
+export async function rateAtmosphere(matchId: number, rating: number, token: string): Promise<void> {
+  return postRating(`/api/matches/${matchId}/rate-atmosphere`, token, { rating });
+}
+
+export async function ratePlayers(matchId: number, ratings: PlayerRatingInput[], token: string): Promise<void> {
+  const res = await authFetchRaw(`/api/matches/${matchId}/rate-players`, token, {
+    method: 'POST',
+    body: JSON.stringify(ratings),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `Request failed: ${res.status}`);
+  }
 }
 
 // Returns null when the backend responds with 204 (lineup not yet available)

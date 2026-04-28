@@ -4,24 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c7815449-ae1a-4daa-98a7-2c5d0901dc05" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
+    <list default="true" id="06ff4ebd-4267-4470-9f91-b41e9c3d0285" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/controller/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/controller/AuthController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/repository/UserRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/repository/UserRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/AuthService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/AuthService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/UserService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/application.properties" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/controller/UserController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/controller/UserController.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/repository/AtmosphereRatingRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/repository/AtmosphereRatingRepository.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/repository/MatchRatingRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/repository/MatchRatingRepository.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/repository/PlayerRatingRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/repository/PlayerRatingRepository.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/repository/RefereeRatingRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/repository/RefereeRatingRepository.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/repository/UserRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/repository/UserRepository.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/service/UserService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/service/UserService.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mobile/.expo/types/router.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/.expo/types/router.d.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,27 +22,47 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "FlorijanSabljic"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/tinmerunka/hnl-rate.git",
+    "accountId": "c8a98ac1-a615-486d-a5e4-2b2136b0d727"
+  }
+}]]></component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 7
+}]]></component>
+  <component name="ProjectId" id="3Ci6BGqaM5hDqVQ9kbCk9Pflvj4" />
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
   </component>
+  <component name="ProjectViewState">
+    <option name="showLibraryContents" value="true" />
+  </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "Maven.backend [org.apache.maven.plugins:maven-clean-plugin:3.5.0:clean].executor": "Run",
-    "Maven.backend [org.apache.maven.plugins:maven-compiler-plugin:3.14.1:compile].executor": "Run",
     "RequestMappingsPanelOrder0": "0",
     "RequestMappingsPanelOrder1": "1",
     "RequestMappingsPanelWidth0": "75",
     "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
     "Spring Boot.BackendApplication.executor": "Run",
-    "git-widget-placeholder": "feature/forgot-password-implementation",
-    "node.js.selected.package.tslint": "(autodetect)"
+    "git-widget-placeholder": "feature/mobile-raitings",
+    "kotlin-language-version-configured": "true",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
   <component name="RunManager">
-    <configuration name="BackendApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
-      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
+    <configuration name="BackendApplication" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="com.hnlrate.backend.BackendApplication" />
       <module name="backend" />
-      <option name="SPRING_BOOT_MAIN_CLASS" value="com.hnlrate.backend.BackendApplication" />
       <extension name="net.ashald.envfile">
         <option name="IS_ENABLED" value="true" />
         <option name="IS_SUBST" value="false" />
@@ -68,7 +79,26 @@
       </method>
     </configuration>
   </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.26830.84" />
+        <option value="bundled-js-predefined-d6986cc7102b-3aa1da707db6-JavaScript-IU-252.26830.84" />
+      </set>
+    </attachedChunks>
+  </component>
   <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="06ff4ebd-4267-4470-9f91-b41e9c3d0285" name="Changes" comment="" />
+      <created>1776855907963</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1776855907963</updated>
+      <workItem from="1776855908995" duration="78000" />
+    </task>
     <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
   </component>
 </project>

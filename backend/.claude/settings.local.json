@@ -4,7 +4,8 @@
       "WebFetch(domain:www.api-football.com)",
       "WebFetch(domain:api-sports.io)",
       "WebSearch",
-      "Bash(./mvnw compile:*)"
+      "Bash(./mvnw compile:*)",
+      "Bash(./mvnw clean *)"
     ]
   }
 }
