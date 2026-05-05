@@ -86,6 +86,11 @@ src/main/java/com/hnlrate/backend/
 | GET    | /api/matches               | Da         | Sve utakmice (?round=N, ?finished=true) |
 | GET    | /api/matches/{id}          | Da         | Detalji utakmice (s refereeom) |
 | GET    | /api/matches/{id}/lineup   | Da         | Postava utakmice (startnih 11 + klupa), lazy sync s api-football |
+| POST   | /api/matches/{id}/rate     | Da         | Ocijeni utakmicu (upsert) |
+| POST   | /api/matches/{id}/rate-referee | Da     | Ocijeni suca na utakmici (upsert) |
+| POST   | /api/matches/{id}/rate-atmosphere | Da  | Ocijeni atmosferu na utakmici (upsert) |
+| POST   | /api/matches/{id}/rate-players | Da     | Ocijeni igrače na utakmici (lista, upsert) |
+| GET    | /api/matches/{id}/ratings  | Ne         | Prosjeci ocjena utakmice + best/worst glasovi po igraču |
 | GET    | /api/players               | Da         | Svi igrači (?clubId=N) |
 | GET    | /api/players/{id}          | Da         | Detalji igrača |
 | GET    | /api/referees              | Da         | Svi suci |
@@ -146,11 +151,11 @@ GET /standings?league={id}&season=2025      → ljestvica
 
 ## TODO — Endpointi koji nedostaju
 
-- [ ] `POST /api/matches/{id}/rate` — ocijeni utakmicu (MatchRating)
-- [ ] `POST /api/matches/{id}/rate-referee` — ocijeni suca (RefereeRating)
-- [ ] `POST /api/matches/{id}/rate-atmosphere` — ocijeni atmosferu (AtmosphereRating)
-- [ ] `POST /api/matches/{id}/rate-players` — ocijeni igrača (PlayerRating)
-- [ ] `GET  /api/matches/{id}/ratings` — prosjeci ocjena utakmice
+- [x] `POST /api/matches/{id}/rate` — ocijeni utakmicu (MatchRating)
+- [x] `POST /api/matches/{id}/rate-referee` — ocijeni suca (RefereeRating)
+- [x] `POST /api/matches/{id}/rate-atmosphere` — ocijeni atmosferu (AtmosphereRating)
+- [x] `POST /api/matches/{id}/rate-players` — ocijeni igrača (PlayerRating)
+- [x] `GET  /api/matches/{id}/ratings` — prosjeci ocjena utakmice
 - [x] `PUT  /api/admin/users/{id}/block` — blokiranje korisnika
 - [ ] `@Scheduled` dnevni job za automatski sync
 

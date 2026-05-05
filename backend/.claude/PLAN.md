@@ -99,8 +99,8 @@ Backend ima solidne temelje (modeli, auth, JWT, CRUD admin endpointi, lineup syn
 
 ### Faza 5 — Admin upravljanje korisnicima
 
-- [ ] `GET  /api/admin/users` — svi korisnici
-- [ ] `PUT  /api/admin/users/{id}/block` — blokiraj/odblokiraj korisnika
+- [x] `GET  /api/admin/users` — svi korisnici
+- [x] `PUT  /api/admin/users/{id}/block` — blokiraj/odblokiraj korisnika
 - [ ] `GET  /api/admin/ratings` — sve ocjene (moderacija)
 
 ---
