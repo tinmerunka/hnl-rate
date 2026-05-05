@@ -1,265 +1,224 @@
+import { T } from '@/constants/theme';
 import { useAuth } from '@/context/auth';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+function Avatar({ name, size = 72 }: { name: string; size?: number }) {
+  const initials = name.slice(0, 2).toUpperCase();
+  return (
+    <View style={[av.wrap, { width: size, height: size, borderRadius: size / 2 }]}>
+      <Text style={[av.text, { fontSize: size * 0.36 }]}>{initials}</Text>
+    </View>
+  );
+}
+
+const av = StyleSheet.create({
+  wrap: { backgroundColor: T.red, justifyContent: 'center', alignItems: 'center' },
+  text: { fontWeight: '800', color: '#fff', letterSpacing: 1 },
+});
+
+function InfoRow({ icon, label, value }: { icon: any; label: string; value: string }) {
+  return (
+    <View style={ir.row}>
+      <View style={ir.left}>
+        <Ionicons name={icon} size={16} color={T.textFaint} />
+        <Text style={ir.label}>{label}</Text>
+      </View>
+      <Text style={ir.value} numberOfLines={1}>{value}</Text>
+    </View>
+  );
+}
+
+const ir = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  left: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  label: { fontSize: 14, color: T.textDim },
+  value: { fontSize: 14, color: T.text, maxWidth: '55%', textAlign: 'right' },
+});
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { userProfile, logout } = useAuth();
 
-  if (!userProfile) return <View style={{ flex: 1, backgroundColor: '#000000' }} />;
+  if (!userProfile) return <View style={{ flex: 1, backgroundColor: T.bg }} />;
 
-  const initials = userProfile.username.slice(0, 2).toUpperCase();
   const fav = userProfile.favoriteClub;
+  const favUri = fav?.crest ?? fav?.logoUrl;
+  const favTla = fav?.tla ?? fav?.name.slice(0, 3).toUpperCase();
 
   return (
     <ScrollView
-      style={styles.container}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + 12 }]}
+      style={s.container}
+      contentContainerStyle={[s.content, { paddingTop: insets.top + 16 }]}
       showsVerticalScrollIndicator={false}>
 
-      <Text style={styles.pageTitle}>Profile</Text>
+      <Text style={s.pageTitle}>Profile</Text>
 
-      <View style={styles.avatarSection}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{initials}</Text>
-        </View>
-        <Text style={styles.username}>{userProfile.username}</Text>
-        <Text style={styles.email}>{userProfile.email}</Text>
+      {/* Avatar section */}
+      <View style={s.avatarSection}>
+        <Avatar name={userProfile.username} size={72} />
+        <Text style={s.username}>{userProfile.username}</Text>
+        <Text style={s.email}>{userProfile.email}</Text>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>FAVORITE CLUB</Text>
+      {/* Favorite club */}
+      <View style={s.section}>
+        <Text style={s.sectionLabel}>FAVOURITE CLUB</Text>
         {fav ? (
           <TouchableOpacity
-            style={styles.favCard}
+            style={s.favCard}
             onPress={() => router.push({ pathname: '/club/[id]' as any, params: { id: fav.id } })}
             activeOpacity={0.75}>
-            <View style={styles.favLeft}>
-              {fav.crest ?? fav.logoUrl ? (
-                <Image source={{ uri: fav.crest ?? fav.logoUrl }} style={styles.favCrest} contentFit="contain" />
+            <View style={s.favLeft}>
+              {favUri ? (
+                <Image source={{ uri: favUri }} style={s.favCrest} contentFit="contain" />
               ) : (
-                <View style={styles.favCrestPlaceholder}>
-                  <Text style={styles.favCrestInitials}>
-                    {fav.tla ?? fav.name.slice(0, 3).toUpperCase()}
-                  </Text>
+                <View style={s.favCrestPlaceholder}>
+                  <Text style={s.favInitials}>{favTla}</Text>
                 </View>
               )}
-              <View>
-                <Text style={styles.favName}>{fav.name}</Text>
-                {fav.shortName && <Text style={styles.favSub}>{fav.shortName}</Text>}
+              <View style={s.favInfo}>
+                <Text style={s.favName}>{fav.name}</Text>
+                {fav.shortName && <Text style={s.favSub}>{fav.shortName}</Text>}
               </View>
             </View>
-            <Ionicons name="chevron-forward" size={18} color="#444444" />
+            <Ionicons name="chevron-forward" size={16} color={T.textFaint} />
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
-            style={styles.noFavCard}
-            onPress={() => router.push('/(tabs)')}
+            style={s.noFavCard}
+            onPress={() => router.push('/(tabs)/clubs' as any)}
             activeOpacity={0.75}>
-            <Ionicons name="heart-outline" size={20} color="#444444" />
-            <Text style={styles.noFavText}>No favorite club yet</Text>
-            <Text style={styles.noFavHint}>Browse clubs to set one</Text>
+            <Ionicons name="heart-outline" size={22} color={T.textFaint} />
+            <Text style={s.noFavText}>No favourite club yet</Text>
+            <Text style={s.noFavHint}>Browse clubs to set one →</Text>
           </TouchableOpacity>
         )}
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionLabel}>ACCOUNT</Text>
-        <View style={styles.infoCard}>
+      {/* Account info */}
+      <View style={s.section}>
+        <Text style={s.sectionLabel}>ACCOUNT</Text>
+        <View style={s.infoCard}>
           <InfoRow icon="person-outline" label="Username" value={userProfile.username} />
-          <View style={styles.divider} />
+          <View style={s.divider} />
           <InfoRow icon="mail-outline" label="Email" value={userProfile.email} />
         </View>
       </View>
 
-      <TouchableOpacity style={styles.logoutBtn} onPress={() => { router.replace('/'); logout(); }} activeOpacity={0.8}>
-        <Ionicons name="log-out-outline" size={18} color="#CC0000" />
-        <Text style={styles.logoutText}>Log Out</Text>
+      {/* Logout */}
+      <TouchableOpacity
+        style={s.logoutBtn}
+        onPress={() => { router.replace('/'); logout(); }}
+        activeOpacity={0.8}>
+        <Ionicons name="log-out-outline" size={18} color={T.red} />
+        <Text style={s.logoutText}>Log out</Text>
       </TouchableOpacity>
     </ScrollView>
   );
 }
 
-function InfoRow({ icon, label, value }: { icon: any; label: string; value: string }) {
-  return (
-    <View style={styles.infoRow}>
-      <View style={styles.infoRowLeft}>
-        <Ionicons name={icon} size={16} color="#555555" />
-        <Text style={styles.infoLabel}>{label}</Text>
-      </View>
-      <Text style={styles.infoValue} numberOfLines={1}>{value}</Text>
-    </View>
-  );
-}
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: T.bg },
+  content: { paddingHorizontal: 20, paddingBottom: 60 },
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000000',
-  },
-  content: {
-    paddingHorizontal: 20,
-    paddingBottom: 48,
-  },
   pageTitle: {
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: T.text,
+    letterSpacing: -0.8,
     marginBottom: 28,
   },
-  avatarSection: {
-    alignItems: 'center',
-    marginBottom: 36,
-  },
-  avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: '#CC0000',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  avatarText: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: 1,
-  },
+
+  avatarSection: { alignItems: 'center', marginBottom: 36 },
   username: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: T.text,
+    marginTop: 14,
     marginBottom: 4,
+    letterSpacing: -0.3,
   },
-  email: {
-    fontSize: 14,
-    color: '#666666',
-  },
-  section: {
-    marginBottom: 28,
-  },
+  email: { fontSize: 14, color: T.textDim },
+
+  section: { marginBottom: 24 },
   sectionLabel: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#444444',
+    color: T.textFaint,
     letterSpacing: 1.2,
     marginBottom: 10,
   },
+
   favCard: {
-    backgroundColor: '#111111',
-    borderRadius: 12,
+    backgroundColor: T.surface,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#1E1E1E',
+    borderColor: T.hairline,
     paddingHorizontal: 14,
     paddingVertical: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  favLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    flex: 1,
-  },
-  favCrest: {
-    width: 44,
-    height: 44,
-  },
+  favLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+  favCrest: { width: 44, height: 44 },
   favCrestPlaceholder: {
     width: 44,
     height: 44,
-    borderRadius: 8,
-    backgroundColor: '#1E1E1E',
+    borderRadius: 10,
+    backgroundColor: T.surfaceHi,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  favCrestInitials: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#555555',
-  },
-  favName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 2,
-  },
-  favSub: {
-    fontSize: 12,
-    color: '#555555',
-  },
-  noFavCard: {
-    backgroundColor: '#111111',
-    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1E1E1E',
-    paddingVertical: 20,
+    borderColor: T.hairline,
+  },
+  favInitials: { fontSize: 11, fontWeight: '800', color: T.textFaint },
+  favInfo: { flex: 1 },
+  favName: { fontSize: 15, fontWeight: '600', color: T.text, marginBottom: 2 },
+  favSub: { fontSize: 12, color: T.textFaint },
+
+  noFavCard: {
+    backgroundColor: T.surface,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: T.hairline,
+    paddingVertical: 24,
     alignItems: 'center',
     gap: 6,
   },
-  noFavText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#444444',
-  },
-  noFavHint: {
-    fontSize: 12,
-    color: '#333333',
-  },
+  noFavText: { fontSize: 14, fontWeight: '600', color: T.textDim },
+  noFavHint: { fontSize: 13, color: T.textFaint },
+
   infoCard: {
-    backgroundColor: '#111111',
-    borderRadius: 12,
+    backgroundColor: T.surface,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#1E1E1E',
+    borderColor: T.hairline,
     overflow: 'hidden',
   },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-  },
-  infoRowLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  infoLabel: {
-    fontSize: 14,
-    color: '#888888',
-  },
-  infoValue: {
-    fontSize: 14,
-    color: '#FFFFFF',
-    maxWidth: '55%',
-    textAlign: 'right',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#1A1A1A',
-    marginHorizontal: 14,
-  },
+  divider: { height: 1, backgroundColor: T.hairline, marginHorizontal: 14 },
+
   logoutBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
     borderWidth: 1,
-    borderColor: '#2A1A1A',
-    borderRadius: 12,
+    borderColor: 'rgba(225,29,42,0.2)',
+    borderRadius: 14,
     paddingVertical: 16,
-    backgroundColor: '#0D0000',
+    backgroundColor: 'rgba(225,29,42,0.05)',
   },
-  logoutText: {
-    color: '#CC0000',
-    fontSize: 15,
-    fontWeight: '600',
-  },
+  logoutText: { color: T.red, fontSize: 15, fontWeight: '600' },
 });

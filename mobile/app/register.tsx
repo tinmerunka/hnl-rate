@@ -1,4 +1,5 @@
 import API_BASE_URL from '@/constants/config';
+import { T } from '@/constants/theme';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
@@ -13,9 +14,73 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+function LogoMark() {
+  const sq = 40 / 7;
+  const cells: React.ReactNode[] = [];
+  for (let i = 0; i < 7; i++) {
+    for (let j = 0; j < 7; j++) {
+      if ((i + j) % 2 === 0) {
+        cells.push(
+          <View
+            key={`${i}-${j}`}
+            style={{ position: 'absolute', left: i * sq, top: j * sq, width: sq, height: sq, backgroundColor: '#fff' }}
+          />
+        );
+      }
+    }
+  }
+  return (
+    <View style={{ width: 40, height: 40, borderRadius: 11, backgroundColor: T.red, overflow: 'hidden' }}>
+      {cells}
+    </View>
+  );
+}
+
+function Field({
+  label,
+  value,
+  onChangeText,
+  placeholder,
+  secureTextEntry,
+  keyboardType,
+  autoCapitalize,
+  optional,
+}: {
+  label: string;
+  value: string;
+  onChangeText: (v: string) => void;
+  placeholder?: string;
+  secureTextEntry?: boolean;
+  keyboardType?: any;
+  autoCapitalize?: any;
+  optional?: boolean;
+}) {
+  return (
+    <View style={s.fieldWrap}>
+      <View style={s.fieldLabelRow}>
+        <Text style={s.fieldLabel}>{label.toUpperCase()}</Text>
+        {optional && <Text style={s.fieldOptional}> · OPTIONAL</Text>}
+      </View>
+      <TextInput
+        style={s.fieldInput}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={T.textFaint}
+        secureTextEntry={secureTextEntry}
+        keyboardType={keyboardType}
+        autoCapitalize={autoCapitalize ?? 'none'}
+        autoCorrect={false}
+      />
+    </View>
+  );
+}
 
 export default function RegisterScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -40,7 +105,6 @@ export default function RegisterScreen() {
       });
 
       const text = await response.text();
-      console.log('Register response:', response.status, text);
 
       if (!response.ok) {
         let message = 'Could not create account.';
@@ -54,12 +118,11 @@ export default function RegisterScreen() {
         return;
       }
 
-      Alert.alert('Success', 'Account created! Please log in.', [
-        { text: 'OK', onPress: () => router.replace('/login') },
+      Alert.alert('Welcome to HNL Rate', 'Account created! Sign in to get started.', [
+        { text: 'Sign in', onPress: () => router.replace('/login') },
       ]);
     } catch (err) {
-      console.error('Register error:', err);
-      Alert.alert('Error', String(err));
+      Alert.alert('Error', 'Could not connect to server. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -67,162 +130,123 @@ export default function RegisterScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={s.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[s.scroll, { paddingTop: insets.top + 16 }]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Text style={styles.backBtnText}>← Back</Text>
-        </TouchableOpacity>
-
-        <Text style={styles.title}>Create account</Text>
-        <Text style={styles.subtitle}>Join HNL Rate today</Text>
-
-        <View style={styles.form}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Username</Text>
-            <TextInput
-              style={styles.input}
-              value={username}
-              onChangeText={setUsername}
-              placeholder="Choose a username"
-              placeholderTextColor="#555555"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Enter your email"
-              placeholderTextColor="#555555"
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType="email-address"
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Choose a password"
-              placeholderTextColor="#555555"
-              secureTextEntry
-            />
-          </View>
-
-          <TouchableOpacity
-            style={[styles.btnPrimary, loading && styles.btnDisabled]}
-            onPress={handleRegister}
-            disabled={loading}>
-            {loading ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.btnPrimaryText}>Create Account</Text>
-            )}
+        {/* Top row: logo + back */}
+        <View style={s.topRow}>
+          <LogoMark />
+          <TouchableOpacity onPress={() => router.back()} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <Text style={s.backText}>← Back</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Already have an account? </Text>
-          <TouchableOpacity onPress={() => router.replace('/login')}>
-            <Text style={styles.footerLink}>Log in</Text>
+        {/* Heading */}
+        <View style={s.heading}>
+          <Text style={s.title}>Join the stands.</Text>
+          <Text style={s.subtitle}>Create an account to rate matches, players &amp; referees.</Text>
+        </View>
+
+        {/* Fields */}
+        <View style={s.fields}>
+          <Field label="Username" value={username} onChangeText={setUsername} placeholder="navijac_hr" />
+          <Field label="Email" value={email} onChangeText={setEmail} placeholder="ime@primjer.hr" keyboardType="email-address" />
+          <Field label="Password" value={password} onChangeText={setPassword} placeholder="••••••••" secureTextEntry />
+        </View>
+
+        {/* CTA */}
+        <View style={s.cta}>
+          <TouchableOpacity
+            style={[s.btnPrimary, loading && s.btnDisabled]}
+            onPress={handleRegister}
+            disabled={loading}
+            activeOpacity={0.85}>
+            {loading
+              ? <ActivityIndicator color="#fff" />
+              : <Text style={s.btnPrimaryText}>Create account</Text>}
           </TouchableOpacity>
+
+          <View style={s.switchRow}>
+            <Text style={s.switchText}>Already a member? </Text>
+            <TouchableOpacity onPress={() => router.replace('/login')}>
+              <Text style={s.switchLink}>Sign in</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000000',
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: T.bg },
+  scroll: { flexGrow: 1, paddingHorizontal: 24, paddingBottom: 40 },
+
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 36,
   },
-  scroll: {
-    flexGrow: 1,
-    paddingHorizontal: 32,
-    paddingTop: 60,
-    paddingBottom: 40,
-  },
-  backBtn: {
-    marginBottom: 32,
-  },
-  backBtnText: {
-    color: '#888888',
-    fontSize: 15,
-  },
+  backText: { fontSize: 14, color: T.textDim, fontWeight: '500' },
+
+  heading: { marginBottom: 32 },
   title: {
-    fontSize: 34,
+    fontSize: 32,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: T.text,
+    letterSpacing: -1,
+    lineHeight: 36,
     marginBottom: 8,
   },
-  subtitle: {
-    fontSize: 15,
-    color: '#888888',
-    marginBottom: 40,
-  },
-  form: {
-    gap: 20,
-  },
-  inputGroup: {
-    gap: 8,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#AAAAAA',
-    textTransform: 'uppercase',
+  subtitle: { fontSize: 15, color: T.textDim, lineHeight: 21 },
+
+  fields: { gap: 16, marginBottom: 32 },
+  fieldWrap: { gap: 8 },
+  fieldLabelRow: { flexDirection: 'row', alignItems: 'baseline' },
+  fieldLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: T.textFaint,
     letterSpacing: 0.8,
   },
-  input: {
-    backgroundColor: '#111111',
-    borderWidth: 1,
-    borderColor: '#2A2A2A',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 15,
-    color: '#FFFFFF',
-  },
-  btnPrimary: {
-    backgroundColor: '#CC0000',
-    paddingVertical: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  btnDisabled: {
-    opacity: 0.6,
-  },
-  btnPrimaryText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
+  fieldOptional: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: T.textFaint,
     letterSpacing: 0.5,
   },
-  footer: {
-    flexDirection: 'row',
+  fieldInput: {
+    height: 52,
+    borderRadius: 12,
+    backgroundColor: T.surface,
+    borderWidth: 1,
+    borderColor: T.hairline,
+    paddingHorizontal: 16,
+    fontSize: 15,
+    color: T.text,
+  },
+
+  cta: { gap: 16 },
+  btnPrimary: {
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: T.red,
     justifyContent: 'center',
-    marginTop: 48,
+    alignItems: 'center',
+    shadowColor: T.red,
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
   },
-  footerText: {
-    color: '#666666',
-    fontSize: 14,
-  },
-  footerLink: {
-    color: '#CC0000',
-    fontSize: 14,
-    fontWeight: '600',
-  },
+  btnDisabled: { opacity: 0.6 },
+  btnPrimaryText: { fontSize: 16, fontWeight: '600', color: '#fff' },
+
+  switchRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
+  switchText: { fontSize: 14, color: T.textDim },
+  switchLink: { fontSize: 14, color: T.text, fontWeight: '700' },
 });

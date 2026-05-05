@@ -121,7 +121,15 @@ export async function getUserRatings(token: string): Promise<UserMatchRating[]> 
 }
 
 export async function getMatchRatings(matchId: number, token: string): Promise<MatchRatings> {
-  return authFetch(`/api/matches/${matchId}/ratings`, token);
+  const response = await authFetchRaw(`/api/matches/${matchId}/ratings`, token);
+  if (response.status === 204) {
+    return { averageMatchRating: null, averageRefereeRating: null, averageAtmosphereRating: null, playerRatings: [] };
+  }
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || `Request failed: ${response.status}`);
+  }
+  return response.json();
 }
 
 async function postRating(path: string, token: string, body: object): Promise<void> {
@@ -156,6 +164,10 @@ export async function ratePlayers(matchId: number, ratings: PlayerRatingInput[],
     const text = await res.text();
     throw new Error(text || `Request failed: ${res.status}`);
   }
+}
+
+export async function getMatchesByRound(round: number, token: string): Promise<Match[]> {
+  return authFetch(`/api/matches?round=${round}`, token);
 }
 
 // Returns null when the backend responds with 204 (lineup not yet available)

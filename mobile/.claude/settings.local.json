@@ -4,7 +4,12 @@
       "Bash(xargs grep:*)",
       "Bash(grep -r \"state\\\\|context\\\\|provider\\\\|redux\\\\|auth\\\\|jwt\\\\|token\" /c/Users/meri4/Desktop/OICAR/hnl-rate/mobile --include=*.ts --include=*.tsx --include=*.js --exclude-dir=node_modules)",
       "Bash(npx expo:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "WebFetch(domain:api.anthropic.com)",
+      "Bash(cp \"C:\\\\Users\\\\meri4\\\\.claude\\\\projects\\\\c--Users-meri4-Desktop-OICAR-hnl-rate-mobile\\\\df4f8358-6654-4f77-881b-458af81528da\\\\tool-results\\\\webfetch-1778012523206-5vjwxi.bin\" /tmp/design.gz)",
+      "Bash(gunzip -c /tmp/design.gz)",
+      "Read(//tmp/**)",
+      "Bash(tar -xf /tmp/design_extracted -C /tmp/)"
     ]
   }
 }

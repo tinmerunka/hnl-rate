@@ -1,285 +1,509 @@
-import { Club, useAuth } from '@/context/auth';
-import { getClubs, removeFavoriteClub, setFavoriteClub } from '@/services/api';
+import { T } from '@/constants/theme';
+import { Match, useAuth } from '@/context/auth';
+import { getMatchesByRound } from '@/services/api';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export default function ClubsScreen() {
+/* ── helpers ─────────────────────────────────────────── */
+
+function formatDate(dateStr: string) {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+}
+
+function formatTime(dateStr: string) {
+  const d = new Date(dateStr);
+  return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+}
+
+function scoreColor(a: string, b: string) {
+  const [ha, hb] = [parseInt(a), parseInt(b)];
+  if (isNaN(ha) || isNaN(hb) || ha === hb) return T.draw;
+  return ha > hb ? T.win : T.loss;
+}
+
+/* ── ClubAvatar ──────────────────────────────────────── */
+
+function ClubAvatar({ club, size = 32 }: { club: { name: string; crest?: string; logoUrl?: string; tla?: string }; size?: number }) {
+  const uri = club.crest ?? club.logoUrl;
+  if (uri) {
+    return <Image source={{ uri }} style={{ width: size, height: size }} contentFit="contain" />;
+  }
+  return (
+    <View style={[av.placeholder, { width: size, height: size, borderRadius: size * 0.22 }]}>
+      <Text style={[av.initials, { fontSize: size * 0.33 }]}>
+        {club.tla ?? club.name.slice(0, 3).toUpperCase()}
+      </Text>
+    </View>
+  );
+}
+
+const av = StyleSheet.create({
+  placeholder: { backgroundColor: T.surface, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: T.hairline },
+  initials: { color: T.textFaint, fontWeight: '800', letterSpacing: 0.5 },
+});
+
+/* ── MatchCard ───────────────────────────────────────── */
+
+function MatchCard({ match, onPress }: { match: Match; onPress: () => void }) {
+  const [homeScore, awayScore] = match.result ? match.result.split('-') : [null, null];
+  const isLive = !match.finished && new Date(match.date) <= new Date();
+  const isUpcoming = !match.finished && !isLive;
+
+  return (
+    <TouchableOpacity style={[mc.card, isLive && mc.cardLive]} onPress={onPress} activeOpacity={0.75}>
+      {/* Live indicator */}
+      {isLive && (
+        <View style={mc.liveStrip}>
+          <View style={mc.liveDot} />
+          <Text style={mc.liveText}>LIVE</Text>
+        </View>
+      )}
+
+      <View style={mc.inner}>
+        {/* Home team */}
+        <View style={mc.teamRow}>
+          <ClubAvatar club={match.homeClub} size={28} />
+          <Text style={mc.teamName} numberOfLines={1}>{match.homeClub.shortName ?? match.homeClub.name}</Text>
+          {homeScore != null && (
+            <Text style={[mc.score, { color: scoreColor(homeScore, awayScore!) }]}>{homeScore}</Text>
+          )}
+        </View>
+
+        {/* Away team */}
+        <View style={mc.teamRow}>
+          <ClubAvatar club={match.awayClub} size={28} />
+          <Text style={mc.teamName} numberOfLines={1}>{match.awayClub.shortName ?? match.awayClub.name}</Text>
+          {awayScore != null && (
+            <Text style={[mc.score, { color: scoreColor(awayScore, homeScore!) }]}>{awayScore}</Text>
+          )}
+        </View>
+      </View>
+
+      {/* Right column */}
+      <View style={mc.rightCol}>
+        {match.finished ? (
+          <View style={mc.ftBadge}><Text style={mc.ftText}>FT</Text></View>
+        ) : (
+          <>
+            <Text style={mc.time}>{formatTime(match.date)}</Text>
+            <Text style={mc.date}>{formatDate(match.date)}</Text>
+          </>
+        )}
+        <Ionicons name="chevron-forward" size={14} color={T.textFaint} style={{ marginTop: 6 }} />
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+const mc = StyleSheet.create({
+  card: {
+    backgroundColor: T.surface,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: T.hairline,
+    flexDirection: 'row',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  cardLive: {
+    borderColor: T.red,
+    shadowColor: T.red,
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 4,
+  },
+  liveStrip: {
+    width: 36,
+    alignSelf: 'stretch',
+    backgroundColor: 'rgba(225,29,42,0.12)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 4,
+    borderRightWidth: 1,
+    borderRightColor: 'rgba(225,29,42,0.2)',
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: T.red,
+  },
+  liveText: {
+    fontSize: 8,
+    fontWeight: '800',
+    color: T.red,
+    letterSpacing: 0.5,
+    transform: [{ rotate: '-90deg' }],
+    width: 24,
+    textAlign: 'center',
+  },
+  inner: { flex: 1, paddingVertical: 14, paddingHorizontal: 14, gap: 10 },
+  teamRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  teamName: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    color: T.text,
+  },
+  score: {
+    fontSize: 18,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+    minWidth: 18,
+    textAlign: 'right',
+  },
+  rightCol: {
+    paddingRight: 14,
+    alignItems: 'flex-end',
+    gap: 2,
+  },
+  time: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: T.text,
+    letterSpacing: -0.3,
+  },
+  date: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: T.textFaint,
+    letterSpacing: 0.2,
+  },
+  ftBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    backgroundColor: T.surfaceHi,
+    borderWidth: 1,
+    borderColor: T.hairline,
+  },
+  ftText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: T.textFaint,
+    letterSpacing: 0.5,
+  },
+});
+
+/* ── Section header ──────────────────────────────────── */
+
+function SectionHeader({ title, count }: { title: string; count?: number }) {
+  return (
+    <View style={sh.row}>
+      <Text style={sh.title}>{title}</Text>
+      {count != null && count > 0 && <Text style={sh.count}>{count}</Text>}
+    </View>
+  );
+}
+
+const sh = StyleSheet.create({
+  row: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginBottom: 10 },
+  title: { fontSize: 17, fontWeight: '800', color: T.text, letterSpacing: -0.5 },
+  count: { fontSize: 13, color: T.textFaint, fontWeight: '600' },
+});
+
+/* ── Round selector ──────────────────────────────────── */
+
+function RoundPill({ round, onPrev, onNext, loading }: {
+  round: number; onPrev: () => void; onNext: () => void; loading: boolean;
+}) {
+  return (
+    <View style={rp.pill}>
+      <TouchableOpacity onPress={onPrev} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} disabled={round <= 1}>
+        <Ionicons name="chevron-back" size={16} color={round <= 1 ? T.textFaint : T.textDim} />
+      </TouchableOpacity>
+      <View style={rp.center}>
+        {loading
+          ? <ActivityIndicator size="small" color={T.textDim} />
+          : (
+            <>
+              <Text style={rp.label}>Round {round}</Text>
+              <Text style={rp.dot}> · </Text>
+              <Text style={rp.sub}>SuperSport HNL</Text>
+            </>
+          )}
+      </View>
+      <TouchableOpacity onPress={onNext} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+        <Ionicons name="chevron-forward" size={16} color={T.textDim} />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const rp = StyleSheet.create({
+  pill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: T.surface,
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: T.hairline,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginHorizontal: 20,
+    marginBottom: 16,
+  },
+  center: { flexDirection: 'row', alignItems: 'center', minHeight: 20, justifyContent: 'center' },
+  label: { fontSize: 13, fontWeight: '700', color: T.text, letterSpacing: 0.1 },
+  dot: { fontSize: 13, color: T.textFaint },
+  sub: { fontSize: 13, color: T.textFaint },
+});
+
+/* ── Screen ──────────────────────────────────────────── */
+
+const STARTING_ROUND = 32;
+
+export default function MatchesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { token, userProfile, updateProfile } = useAuth();
-  const [clubs, setClubs] = useState<Club[]>([]);
+  const { token } = useAuth();
+
+  const [round, setRound] = useState(STARTING_ROUND);
+  const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [search, setSearch] = useState('');
-  const [togglingId, setTogglingId] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const favoriteId = userProfile?.favoriteClub?.id ?? null;
-
-  const filtered = useMemo(() => {
-    if (!search.trim()) return clubs;
-    const q = search.toLowerCase();
-    return clubs.filter(
-      (c) =>
-        c.name.toLowerCase().includes(q) ||
-        c.shortName?.toLowerCase().includes(q) ||
-        c.tla?.toLowerCase().includes(q)
-    );
-  }, [clubs, search]);
-
-  async function loadClubs(silent = false) {
+  async function loadRound(r: number, silent = false) {
     if (!token) return;
     if (!silent) setLoading(true);
+    setError(null);
     try {
-      const data = await getClubs(token);
-      setClubs(data);
+      const data = await getMatchesByRound(r, token);
+      setMatches(data);
     } catch (e: any) {
-      Alert.alert('Error', e.message ?? 'Failed to load clubs.');
+      setError(e.message ?? 'Failed to load matches.');
+      setMatches([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   }
 
-  useEffect(() => {
-    loadClubs();
-  }, [token]);
+  useEffect(() => { loadRound(round); }, [token, round]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    loadClubs(true);
-  }, [token]);
+    loadRound(round, true);
+  }, [token, round]);
 
-  async function toggleFavorite(club: Club) {
-    if (!token) return;
-    setTogglingId(club.id);
-    try {
-      let updated;
-      if (favoriteId === club.id) {
-        updated = await removeFavoriteClub(token);
-      } else {
-        updated = await setFavoriteClub(club.id, token);
-      }
-      updateProfile(updated);
-    } catch (e: any) {
-      Alert.alert('Error', e.message ?? 'Failed to update favorite.');
-    } finally {
-      setTogglingId(null);
+  const { finished, upcoming, live } = useMemo(() => {
+    const now = new Date();
+    const fin: Match[] = [];
+    const up: Match[] = [];
+    const lv: Match[] = [];
+    for (const m of matches) {
+      if (m.finished) fin.push(m);
+      else if (new Date(m.date) <= now) lv.push(m);
+      else up.push(m);
     }
-  }
+    return { finished: fin, upcoming: up, live: lv };
+  }, [matches]);
 
-  function renderClub({ item }: { item: Club }) {
-    const isFav = item.id === favoriteId;
-    const isToggling = togglingId === item.id;
-
-    return (
-      <TouchableOpacity
-        style={styles.card}
-        onPress={() => router.push({ pathname: '/club/[id]' as any, params: { id: item.id } })}
-        activeOpacity={0.7}>
-        <View style={styles.cardLeft}>
-          {item.crest ?? item.logoUrl ? (
-            <Image source={{ uri: item.crest ?? item.logoUrl }} style={styles.crest} contentFit="contain" />
-          ) : (
-            <View style={styles.crestPlaceholder}>
-              <Text style={styles.crestInitials}>{item.tla ?? item.name.slice(0, 3).toUpperCase()}</Text>
-            </View>
-          )}
-          <View style={styles.cardInfo}>
-            <Text style={styles.clubName} numberOfLines={1}>{item.name}</Text>
-            <Text style={styles.clubSub} numberOfLines={1}>
-              {[item.shortName, item.tla].filter(Boolean).join(' · ') || ' '}
-            </Text>
-          </View>
-        </View>
-        <TouchableOpacity
-          style={styles.heartBtn}
-          onPress={() => toggleFavorite(item)}
-          disabled={isToggling}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          {isToggling ? (
-            <ActivityIndicator size="small" color="#CC0000" />
-          ) : (
-            <Ionicons
-              name={isFav ? 'heart' : 'heart-outline'}
-              size={22}
-              color={isFav ? '#CC0000' : '#444444'}
-            />
-          )}
-        </TouchableOpacity>
-      </TouchableOpacity>
-    );
+  function goToMatch(m: Match) {
+    router.push({ pathname: '/match/[id]' as any, params: { id: m.id } });
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Clubs</Text>
-        <Text style={styles.count}>{clubs.length > 0 ? `${clubs.length} clubs` : ''}</Text>
-      </View>
-
-      <View style={styles.searchWrapper}>
-        <Ionicons name="search" size={16} color="#555555" style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          value={search}
-          onChangeText={setSearch}
-          placeholder="Search clubs..."
-          placeholderTextColor="#444444"
-          autoCorrect={false}
-          clearButtonMode="while-editing"
-        />
-      </View>
-
-      {loading ? (
-        <View style={styles.centered}>
-          <ActivityIndicator color="#CC0000" size="large" />
+    <View style={[s.container, { paddingTop: insets.top }]}>
+      {/* Header */}
+      <View style={s.header}>
+        <View style={s.headerLeft}>
+          <View style={s.logoMark}>
+            {[0,1,2,3,4,5,6].map(i =>
+              [0,1,2,3,4,5,6].map(j =>
+                (i+j) % 2 === 0
+                  ? <View key={`${i}-${j}`} style={{ position: 'absolute', left: i*3.4, top: j*3.4, width: 3.4, height: 3.4, backgroundColor: '#fff' }} />
+                  : null
+              )
+            )}
+          </View>
+          <Text style={s.headerTitle}>HNL Rate</Text>
         </View>
-      ) : (
-        <FlatList
-          data={filtered}
-          keyExtractor={(item) => String(item.id)}
-          renderItem={renderClub}
-          contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#CC0000" />
-          }
-          ListEmptyComponent={
-            <View style={styles.centered}>
-              <Text style={styles.emptyText}>
-                {search ? 'No clubs match your search.' : 'No clubs found.'}
-              </Text>
-            </View>
-          }
-        />
-      )}
+        <View style={s.headerRight}>
+          <View style={s.iconBtn}>
+            <Ionicons name="search-outline" size={18} color={T.textDim} />
+          </View>
+        </View>
+      </View>
+
+      {/* Round pill */}
+      <RoundPill
+        round={round}
+        loading={loading && !refreshing}
+        onPrev={() => { if (round > 1) setRound(r => r - 1); }}
+        onNext={() => setRound(r => r + 1)}
+      />
+
+      <ScrollView
+        contentContainerStyle={s.scroll}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={T.red} />
+        }>
+
+        {error ? (
+          <View style={s.errorWrap}>
+            <Ionicons name="alert-circle-outline" size={40} color={T.textFaint} />
+            <Text style={s.errorTitle}>No matches found</Text>
+            <Text style={s.errorSub}>{error}</Text>
+            <TouchableOpacity style={s.retryBtn} onPress={() => loadRound(round)}>
+              <Text style={s.retryText}>Try again</Text>
+            </TouchableOpacity>
+          </View>
+        ) : loading ? (
+          <View style={s.centered}>
+            <ActivityIndicator color={T.red} size="large" />
+          </View>
+        ) : matches.length === 0 ? (
+          <View style={s.centered}>
+            <Ionicons name="football-outline" size={40} color={T.textFaint} />
+            <Text style={s.emptyText}>No matches for Round {round}</Text>
+          </View>
+        ) : (
+          <>
+            {/* Live */}
+            {live.length > 0 && (
+              <View style={s.section}>
+                <View style={s.liveHeader}>
+                  <View style={s.liveBullet} />
+                  <Text style={s.liveLabel}>LIVE NOW</Text>
+                  <View style={s.hairline} />
+                  <Text style={s.liveCount}>{live.length} match{live.length > 1 ? 'es' : ''}</Text>
+                </View>
+                {live.map(m => (
+                  <View key={m.id} style={{ marginBottom: 8 }}>
+                    <MatchCard match={m} onPress={() => goToMatch(m)} />
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Upcoming */}
+            {upcoming.length > 0 && (
+              <View style={s.section}>
+                <SectionHeader title="Upcoming" count={upcoming.length} />
+                {upcoming.map(m => (
+                  <View key={m.id} style={{ marginBottom: 8 }}>
+                    <MatchCard match={m} onPress={() => goToMatch(m)} />
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Finished */}
+            {finished.length > 0 && (
+              <View style={s.section}>
+                <SectionHeader title="Results" count={finished.length} />
+                {finished.map(m => (
+                  <View key={m.id} style={{ marginBottom: 8 }}>
+                    <MatchCard match={m} onPress={() => goToMatch(m)} />
+                  </View>
+                ))}
+              </View>
+            )}
+          </>
+        )}
+      </ScrollView>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000000',
-  },
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: T.bg },
+
   header: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 16,
-    gap: 10,
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: '800',
-    color: '#FFFFFF',
-  },
-  count: {
-    fontSize: 13,
-    color: '#555555',
-  },
-  searchWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#111111',
-    borderRadius: 10,
-    marginHorizontal: 16,
-    marginBottom: 12,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: '#222222',
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    paddingVertical: 11,
-    fontSize: 15,
-    color: '#FFFFFF',
-  },
-  list: {
-    paddingHorizontal: 16,
-    paddingBottom: 24,
-    gap: 8,
-  },
-  card: {
-    backgroundColor: '#111111',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#1E1E1E',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    marginBottom: 4,
   },
-  cardLeft: {
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  logoMark: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: T.red,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  headerTitle: { fontSize: 18, fontWeight: '800', color: T.text, letterSpacing: -0.5 },
+  headerRight: { flexDirection: 'row', gap: 8 },
+  iconBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: T.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: T.hairline,
+  },
+
+  scroll: { paddingHorizontal: 20, paddingBottom: 100 },
+  section: { marginBottom: 24 },
+
+  liveHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
-    gap: 12,
+    gap: 8,
+    marginBottom: 10,
   },
-  crest: {
-    width: 40,
-    height: 40,
+  liveBullet: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: T.red,
+    shadowColor: T.red,
+    shadowOpacity: 0.6,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 0 },
   },
-  crestPlaceholder: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    backgroundColor: '#1E1E1E',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  crestInitials: {
+  liveLabel: {
     fontSize: 11,
-    fontWeight: '700',
-    color: '#555555',
-    letterSpacing: 0.5,
+    fontWeight: '800',
+    color: T.red,
+    letterSpacing: 1,
   },
-  cardInfo: {
-    flex: 1,
-    gap: 3,
+  hairline: { flex: 1, height: 1, backgroundColor: T.hairline },
+  liveCount: { fontSize: 11, color: T.textFaint, fontWeight: '600' },
+
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 80, gap: 12 },
+  emptyText: { color: T.textFaint, fontSize: 15, fontWeight: '500' },
+
+  errorWrap: { paddingTop: 80, alignItems: 'center', gap: 12 },
+  errorTitle: { fontSize: 17, fontWeight: '700', color: T.text },
+  errorSub: { fontSize: 13, color: T.textDim, textAlign: 'center', maxWidth: 260 },
+  retryBtn: {
+    marginTop: 4,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: T.surface,
+    borderWidth: 1,
+    borderColor: T.hairline,
   },
-  clubName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  clubSub: {
-    fontSize: 12,
-    color: '#555555',
-  },
-  heartBtn: {
-    width: 36,
-    height: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingTop: 60,
-  },
-  emptyText: {
-    color: '#444444',
-    fontSize: 15,
-  },
+  retryText: { fontSize: 14, fontWeight: '600', color: T.text },
 });
