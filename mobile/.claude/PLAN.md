@@ -25,7 +25,8 @@
 - [x] GET `/api/matches/{id}` — detalji utakmice
 - [x] GET `/api/matches/{id}/lineup` — postava utakmice (null ako 204)
 - [x] GET `/api/clubs/{id}/matches` — utakmice kluba
-- [ ] Lista utakmica — ekran koji prikazuje utakmice po kolima
+- [x] Lista utakmica — Matches tab, grupiranje po kolima (Live/Upcoming/Results), round navigator
+- [x] GET `/api/matches?round={n}` — utakmice po kolu (`getMatchesByRound`)
 
 ---
 
@@ -43,16 +44,19 @@
 
 ---
 
-## Faza 4: Ocjenjivanje
+## Faza 4: Ocjenjivanje ✅
 
-- [ ] Ocjena utakmice (MatchRating) — forma s ocjenom 1–10
-- [ ] Ocjena suca (RefereeRating)
-- [ ] Ocjena atmosfere (AtmosphereRating)
-- [ ] Ocjena igrača (PlayerRating) — best/worst player
-- [ ] POST `/api/matches/{id}/rate`
-- [ ] POST `/api/matches/{id}/rate-referee`
-- [ ] POST `/api/matches/{id}/rate-atmosphere`
-- [ ] POST `/api/matches/{id}/rate-players`
+- [x] Ocjena utakmice (MatchRating) — 10 chip-ova u card-stack modalu (korak 1)
+- [x] Ocjena atmosfere (AtmosphereRating) — zvjezdice u koraku 2
+- [x] Ocjena suca (RefereeRating) — zvjezdice u koraku 2
+- [x] Ocjena igrača (PlayerRating) — MOTM picker na pitch formaciji (korak 3)
+- [x] Pregled ocjena (Summary) — 4 tile-a za pregled prije slanja (korak 4)
+- [x] GET `/api/matches/{id}/ratings` — dohvat prosjeka ocjena (`getMatchRatings`)
+- [x] GET `/api/user/ratings` — lista korisnikovih ocjena (`getUserRatings`)
+- [x] POST `/api/matches/{id}/rate`
+- [x] POST `/api/matches/{id}/rate-referee`
+- [x] POST `/api/matches/{id}/rate-atmosphere`
+- [x] POST `/api/matches/{id}/rate-players`
 
 ---
 
@@ -67,9 +71,9 @@
 
 ## Faza 6: Poboljšanja
 
+- [x] UI redesign — novi design system (T tokeni), 4-tab navigacija, card-stack rating modal, matches feed
 - [ ] Loading skeleton ekrani
 - [ ] Bolje error poruke (lokalizacija na HR)
-- [ ] Lista utakmica kao zasebni tab
 
 ---
 
