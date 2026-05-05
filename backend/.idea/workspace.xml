@@ -4,16 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="06ff4ebd-4267-4470-9f91-b41e9c3d0285" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.claude/PLAN.md" beforeDir="false" afterPath="$PROJECT_DIR$/.claude/PLAN.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CLAUDE.md" beforeDir="false" afterPath="$PROJECT_DIR$/CLAUDE.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mobile/.expo/types/router.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/.expo/types/router.d.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mobile/app/match/[id].tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/app/match/[id].tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mobile/constants/config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/constants/config.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mobile/expo-env.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/expo-env.d.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mobile/services/api.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/services/api.ts" afterDir="false" />
-    </list>
+    <list default="true" id="06ff4ebd-4267-4470-9f91-b41e9c3d0285" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -28,12 +19,12 @@
     &quot;assignee&quot;: &quot;FlorijanSabljic&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/tinmerunka/hnl-rate.git",
-    "accountId": "df3e547f-9e34-4937-9d01-56396289dc37"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/tinmerunka/hnl-rate.git&quot;,
+    &quot;accountId&quot;: &quot;df3e547f-9e34-4937-9d01-56396289dc37&quot;
   }
-}]]></component>
+}</component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 7
 }</component>
@@ -59,6 +50,8 @@
     "git-widget-placeholder": "feature/mobile-ratingScreens",
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "to.speed.mode.migration.done": "true",
     "vue.rearranger.settings.migration": "true"
@@ -101,6 +94,7 @@
       <updated>1776855907963</updated>
       <workItem from="1776855908995" duration="78000" />
       <workItem from="1777920129812" duration="15000" />
+      <workItem from="1778010571105" duration="635000" />
     </task>
     <servers />
   </component>
