@@ -4,7 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="06ff4ebd-4267-4470-9f91-b41e9c3d0285" name="Changes" comment="" />
+    <list default="true" id="06ff4ebd-4267-4470-9f91-b41e9c3d0285" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/client/ApiFootballClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/client/ApiFootballClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/dto/external/ApiResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/dto/external/ApiResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/dto/external/FixtureStatusDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/dto/external/FixtureStatusDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/SyncService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/SyncService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/dto/external/ApiResponse.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/dto/external/ApiResponse.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/dto/external/FixtureStatusDto.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/dto/external/FixtureStatusDto.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/test-classes/com/hnlrate/backend/BackendApplicationTests.class" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -38,6 +47,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Application.BackendApplication.executor": "Run",
+    "Maven.backend [org.apache.maven.plugins:maven-clean-plugin:3.5.0:clean].executor": "Run",
     "RequestMappingsPanelOrder0": "0",
     "RequestMappingsPanelOrder1": "1",
     "RequestMappingsPanelWidth0": "75",
@@ -47,7 +57,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "Spring Boot.BackendApplication.executor": "Run",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "feature/mobile-ratingScreens",
+    "git-widget-placeholder": "feature/web-dashboardEdit",
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
     "node.js.detected.package.eslint": "true",

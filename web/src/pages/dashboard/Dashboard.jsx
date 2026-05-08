@@ -52,7 +52,7 @@ function StatCard({ label, value, subtext, icon, accent, loading, delay = 0 }) {
       {/* Number */}
       <div className="flex items-end gap-2">
         <span
-          className="text-[42px] font-black leading-none tabular-nums tracking-tight text-white"
+          className="text-[42px] font-black font-display leading-none tabular-nums tracking-tight text-white"
           style={{ fontVariantNumeric: 'tabular-nums' }}
         >
           {loading ? '—' : displayed}
@@ -184,19 +184,14 @@ export default function Dashboard() {
           <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-hnl-red mb-2">
             Pregled
           </p>
-          <h1 className="text-[32px] font-black text-white tracking-tight leading-none mb-2">
+          <h1 className="text-[32px] font-black font-display text-white tracking-tight leading-none mb-2">
             Dashboard<span className="text-hnl-red">.</span>
           </h1>
           <p className="text-[13px] text-white/30">{todayCap}</p>
         </div>
 
-        {/* Live badge */}
-        <div className="flex items-center gap-2.5 bg-hnl-card border border-white/[0.06] rounded-full px-4 py-2 mt-1">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400" />
-          </span>
-          <span className="text-[12px] font-semibold text-white/50">SuperSport HNL · 2025</span>
+        <div className="flex items-center gap-2 bg-hnl-card border border-white/[0.06] rounded-full px-4 py-2 mt-1">
+          <span className="text-[12px] font-medium text-white/35">SuperSport HNL · 2025</span>
         </div>
       </div>
 
@@ -224,7 +219,24 @@ export default function Dashboard() {
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center py-14 text-white/20 text-sm">Učitavanje...</div>
+            <div className="divide-y divide-white/[0.04]">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="flex items-center gap-4 px-6 py-3.5">
+                  <div className="h-5 w-14 rounded bg-white/[0.06] animate-pulse shrink-0" />
+                  <div className="flex-1 flex justify-end gap-2">
+                    <div className="h-4 w-24 rounded bg-white/[0.06] animate-pulse" />
+                    <div className="h-6 w-6 rounded-md bg-white/[0.06] animate-pulse" />
+                  </div>
+                  <div className="w-14 flex justify-center">
+                    <div className="h-3 w-8 rounded bg-white/[0.06] animate-pulse" />
+                  </div>
+                  <div className="flex-1 flex gap-2">
+                    <div className="h-6 w-6 rounded-md bg-white/[0.06] animate-pulse" />
+                    <div className="h-4 w-24 rounded bg-white/[0.06] animate-pulse" />
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : upcoming.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-14 text-white/20">
               <p className="text-sm">Nema zakazanih utakmica.</p>
@@ -271,7 +283,24 @@ export default function Dashboard() {
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center py-14 text-white/20 text-sm">Učitavanje...</div>
+            <div className="divide-y divide-white/[0.04]">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="px-5 py-3.5">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 flex justify-end">
+                      <div className="h-4 w-24 rounded bg-white/[0.06] animate-pulse" />
+                    </div>
+                    <div className="h-6 w-16 rounded-lg bg-white/[0.06] animate-pulse shrink-0" />
+                    <div className="flex-1">
+                      <div className="h-4 w-24 rounded bg-white/[0.06] animate-pulse" />
+                    </div>
+                  </div>
+                  <div className="flex justify-center mt-1.5">
+                    <div className="h-3 w-28 rounded bg-white/[0.06] animate-pulse" />
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : recent.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-14 text-white/20">
               <p className="text-sm">Nema odigranih utakmica.</p>

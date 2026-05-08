@@ -13,6 +13,8 @@ import com.hnlrate.backend.repository.MatchRepository;
 import com.hnlrate.backend.repository.PlayerRepository;
 import com.hnlrate.backend.repository.RefereeRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -22,6 +24,8 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class SyncService {
+
+    private static final Logger log = LoggerFactory.getLogger(SyncService.class);
 
     private final ApiFootballClient apiFootballClient;
     private final ClubRepository clubRepository;
@@ -52,7 +56,10 @@ public class SyncService {
     }
 
     public int syncMatches() {
+        log.info("[SYNC] syncMatches() START");
         List<FixtureResponseItem> fixtures = apiFootballClient.getFixtures();
+        log.info("[SYNC] getFixtures() returned {} items", fixtures == null ? "null" : fixtures.size());
+        if (fixtures == null || fixtures.isEmpty()) return 0;
         int count = 0;
 
         for (FixtureResponseItem item : fixtures) {
@@ -77,15 +84,36 @@ public class SyncService {
             Referee referee = parseReferee(item.getFixture().getReferee());
             match.setReferee(referee);
 
-            String status = item.getFixture().getStatus().getShortStatus();
-            boolean finished = "FT".equals(status) || "AET".equals(status) || "PEN".equals(status);
+            FixtureGoalsDto goals = item.getGoals();
+            boolean hasGoals = goals != null && goals.getHome() != null && goals.getAway() != null;
+
+            // Primary: check API status code
+            FixtureStatusDto statusDto = item.getFixture().getStatus();
+            String statusCode = statusDto != null ? statusDto.getShortStatus() : null;
+            boolean finished = "FT".equals(statusCode) || "AET".equals(statusCode)
+                    || "PEN".equals(statusCode) || "AWD".equals(statusCode) || "WO".equals(statusCode);
+
+            log.info("[SYNC] fixture={} date={} statusCode={} hasGoals={} goalsHome={} goalsAway={} finished={}",
+                    apiId,
+                    item.getFixture().getDate(),
+                    statusCode,
+                    hasGoals,
+                    goals != null ? goals.getHome() : null,
+                    goals != null ? goals.getAway() : null,
+                    finished);
+
+            // Fallback: if status couldn't be parsed (Jackson annotation issue),
+            // use date + goals as the ground truth — a past match with goals is finished
+            if (!finished && hasGoals) {
+                LocalDate matchDate = parseDate(item.getFixture().getDate());
+                finished = matchDate != null && matchDate.isBefore(LocalDate.now());
+                log.info("[SYNC] fixture={} fallback applied → finished={}", apiId, finished);
+            }
+
             match.setFinished(finished);
 
-            if (finished) {
-                FixtureGoalsDto goals = item.getGoals();
-                if (goals != null && goals.getHome() != null && goals.getAway() != null) {
-                    match.setResult(goals.getHome() + "-" + goals.getAway());
-                }
+            if (finished && hasGoals) {
+                match.setResult(goals.getHome() + "-" + goals.getAway());
             }
 
             matchRepository.save(match);
