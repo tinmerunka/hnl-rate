@@ -434,20 +434,18 @@ const CHIP = 30;
 const WRAP = 46;
 
 function PlayerDot({
-  player,
-  x,
-  y,
-  isHome,
-  selected,
-  onSelect,
+  player, x, y, isHome, selected, isBest, isWorst, onSelect,
 }: {
-  player: LineupPlayer;
-  x: number;
-  y: number;
-  isHome: boolean;
-  selected?: boolean;
+  player: LineupPlayer; x: number; y: number; isHome: boolean;
+  selected?: boolean; isBest?: boolean; isWorst?: boolean;
   onSelect?: (p: LineupPlayer) => void;
 }) {
+  const ringStyle = isBest
+    ? ps.chipRingBest
+    : isWorst
+    ? ps.chipRingWorst
+    : isHome ? ps.chipRingHome : ps.chipRingAway;
+
   return (
     <TouchableOpacity
       style={[ps.playerWrap, { left: x - WRAP / 2, top: y - CHIP / 2 - 5 }]}
@@ -455,28 +453,14 @@ function PlayerDot({
       activeOpacity={onSelect ? 0.7 : 1}
       disabled={!onSelect}
     >
-      <View
-        style={[
-          ps.chipRing,
-          isHome ? ps.chipRingHome : ps.chipRingAway,
-          selected && ps.chipRingSelected,
-        ]}
-      >
-        <View
-          style={[
-            ps.chip,
-            isHome ? ps.chipHome : ps.chipAway,
-            selected && ps.chipSelected,
-          ]}
-        >
+      <View style={[ps.chipRing, ringStyle, selected && ps.chipRingSelected]}>
+        <View style={[ps.chip, isHome ? ps.chipHome : ps.chipAway, selected && ps.chipSelected]}>
           <Text style={[ps.chipNum, isHome ? ps.chipNumHome : ps.chipNumAway]}>
             {player.number ?? "?"}
           </Text>
         </View>
       </View>
-      <Text style={ps.chipName} numberOfLines={1}>
-        {player.lastName}
-      </Text>
+      <Text style={ps.chipName} numberOfLines={1}>{player.lastName}</Text>
     </TouchableOpacity>
   );
 }
@@ -496,7 +480,9 @@ const ps = StyleSheet.create({
   },
   chipRingHome: { backgroundColor: "rgba(255,255,255,0.2)" },
   chipRingAway: { backgroundColor: "rgba(180,0,0,0.3)" },
-  chipRingSelected: { backgroundColor: "rgba(225,29,42,0.4)" },
+  chipRingSelected: { backgroundColor: "rgba(225,29,42,0.55)" },
+  chipRingBest: { backgroundColor: "rgba(39,195,111,0.45)" },
+  chipRingWorst: { backgroundColor: "rgba(229,72,77,0.45)" },
   chip: {
     width: CHIP,
     height: CHIP,
@@ -524,14 +510,13 @@ const ps = StyleSheet.create({
 });
 
 function PitchView({
-  lineup,
-  selectable,
-  selected,
-  onSelect,
+  lineup, selectable, selected, bestPlayerId, worstPlayerId, onSelect,
 }: {
   lineup: MatchLineup;
   selectable?: boolean;
   selected?: number | null;
+  bestPlayerId?: number | null;
+  worstPlayerId?: number | null;
   onSelect?: (p: LineupPlayer) => void;
 }) {
   const { width } = useWindowDimensions();
@@ -638,23 +623,19 @@ function PitchView({
 
         {homePos.map(({ player, x, y }) => (
           <PlayerDot
-            key={player.id}
-            player={player}
-            x={x}
-            y={y}
-            isHome
+            key={player.id} player={player} x={x} y={y} isHome
             selected={selected === player.id}
+            isBest={bestPlayerId === player.id}
+            isWorst={worstPlayerId === player.id}
             onSelect={selectable ? onSelect : undefined}
           />
         ))}
         {awayPos.map(({ player, x, y }) => (
           <PlayerDot
-            key={player.id}
-            player={player}
-            x={x}
-            y={y}
-            isHome={false}
+            key={player.id} player={player} x={x} y={y} isHome={false}
             selected={selected === player.id}
+            isBest={bestPlayerId === player.id}
+            isWorst={worstPlayerId === player.id}
             onSelect={selectable ? onSelect : undefined}
           />
         ))}
@@ -1044,7 +1025,10 @@ function RateModal({
   const [matchRating, setMatchRating] = useState(7);
   const [atmosphereStars, setAtmosphereStars] = useState(0);
   const [refereeStars, setRefereeStars] = useState(0);
-  const [motmPlayerId, setMotmPlayerId] = useState<number | null>(null);
+  const [bestPlayerId, setBestPlayerId] = useState<number | null>(null);
+  const [worstPlayerId, setWorstPlayerId] = useState<number | null>(null);
+  const [playerComments, setPlayerComments] = useState<Record<number, string>>({});
+  const [selectedForActionId, setSelectedForActionId] = useState<number | null>(null);
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -1054,7 +1038,10 @@ function RateModal({
       setMatchRating(7);
       setAtmosphereStars(0);
       setRefereeStars(0);
-      setMotmPlayerId(null);
+      setBestPlayerId(null);
+      setWorstPlayerId(null);
+      setPlayerComments({});
+      setSelectedForActionId(null);
       setComment('');
     }
   }, [visible]);
@@ -1066,7 +1053,21 @@ function RateModal({
       ]
     : [];
 
-  const selectedPlayer = allPlayers.find((p) => p.id === motmPlayerId);
+  const bestPlayer = allPlayers.find((p) => p.id === bestPlayerId);
+  const worstPlayer = allPlayers.find((p) => p.id === worstPlayerId);
+  const actionPlayer = selectedForActionId ? allPlayers.find((p) => p.id === selectedForActionId) : null;
+
+  function toggleBest(id: number) {
+    if (bestPlayerId === id) { setBestPlayerId(null); return; }
+    if (worstPlayerId === id) setWorstPlayerId(null);
+    setBestPlayerId(id);
+  }
+
+  function toggleWorst(id: number) {
+    if (worstPlayerId === id) { setWorstPlayerId(null); return; }
+    if (bestPlayerId === id) setBestPlayerId(null);
+    setWorstPlayerId(id);
+  }
 
   async function handleSubmit() {
     setSubmitting(true);
@@ -1075,21 +1076,24 @@ function RateModal({
       promises.push(rateMatch(matchId, matchRating, token, comment.trim() || undefined));
       if (atmosphereStars > 0) promises.push(rateAtmosphere(matchId, atmosphereStars * 2, token));
       if (refereeStars > 0 && hasReferee) promises.push(rateReferee(matchId, refereeStars * 2, token));
-      if (motmPlayerId) {
-        promises.push(
-          ratePlayers(
-            matchId,
-            [
-              {
-                playerId: motmPlayerId,
-                rating: 10,
-                bestPlayer: true,
-                worstPlayer: false,
-              },
-            ],
-            token,
-          ),
-        );
+
+      const playerPayload: PlayerRatingInput[] = [];
+      if (bestPlayerId) {
+        playerPayload.push({
+          playerId: bestPlayerId, rating: 10,
+          bestPlayer: true, worstPlayer: false,
+          comment: playerComments[bestPlayerId]?.trim() || null,
+        });
+      }
+      if (worstPlayerId) {
+        playerPayload.push({
+          playerId: worstPlayerId, rating: 1,
+          bestPlayer: false, worstPlayer: true,
+          comment: playerComments[worstPlayerId]?.trim() || null,
+        });
+      }
+      if (playerPayload.length > 0) {
+        promises.push(ratePlayers(matchId, playerPayload, token));
       }
       await Promise.all(promises);
       const updated = await getMatchRatings(matchId, token);
@@ -1240,11 +1244,9 @@ function RateModal({
 
             {step === 3 && (
               <View>
-                <Text style={rm.stepLabel}>STEP 3 · MAN OF THE MATCH</Text>
-                <Text style={rm.cardTitle}>Tap your hero.</Text>
-                <Text style={rm.cardSub}>
-                  Pick from the pitch — no scrolling lists.
-                </Text>
+                <Text style={rm.stepLabel}>STEP 3 · PLAYERS</Text>
+                <Text style={rm.cardTitle}>Who stood out?</Text>
+                <Text style={rm.cardSub}>Tap a player to mark as best or worst.</Text>
 
                 {lineup ? (
                   <>
@@ -1252,42 +1254,67 @@ function RateModal({
                       <PitchView
                         lineup={lineup}
                         selectable
-                        selected={motmPlayerId}
-                        onSelect={(p) =>
-                          setMotmPlayerId(p.id === motmPlayerId ? null : p.id)
-                        }
+                        selected={selectedForActionId}
+                        bestPlayerId={bestPlayerId}
+                        worstPlayerId={worstPlayerId}
+                        onSelect={(p) => setSelectedForActionId(p.id === selectedForActionId ? null : p.id)}
                       />
                     </View>
-                    {selectedPlayer && (
-                      <View style={rm.selectedChip}>
-                        <View style={rm.selectedAvatar}>
-                          <Text style={rm.selectedAvatarText}>
-                            {selectedPlayer.firstName[0]}
-                            {selectedPlayer.lastName[0]}
-                          </Text>
+
+                    {actionPlayer && (
+                      <View style={rm.actionCard}>
+                        <View style={rm.actionHeader}>
+                          <View style={[rm.actionNum, actionPlayer.isHome ? rm.actionNumHome : rm.actionNumAway]}>
+                            <Text style={[rm.actionNumText, !actionPlayer.isHome && { color: "#fff" }]}>
+                              {actionPlayer.number ?? "?"}
+                            </Text>
+                          </View>
+                          <View style={{ flex: 1 }}>
+                            <Text style={rm.actionName}>{actionPlayer.firstName} {actionPlayer.lastName}</Text>
+                            <Text style={rm.actionClub}>
+                              {actionPlayer.isHome
+                                ? (lineup.homeTeam.club.shortName ?? lineup.homeTeam.club.name)
+                                : (lineup.awayTeam.club.shortName ?? lineup.awayTeam.club.name)}
+                            </Text>
+                          </View>
+                          <TouchableOpacity onPress={() => setSelectedForActionId(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                            <Ionicons name="close" size={18} color={T.textFaint} />
+                          </TouchableOpacity>
                         </View>
-                        <View style={{ flex: 1 }}>
-                          <Text style={rm.selectedName}>
-                            {selectedPlayer.firstName} {selectedPlayer.lastName}
-                          </Text>
-                          <Text style={rm.selectedSub}>
-                            #{selectedPlayer.number ?? "?"} ·{" "}
-                            {selectedPlayer.isHome
-                              ? (lineup.homeTeam.club.shortName ??
-                                lineup.homeTeam.club.name)
-                              : (lineup.awayTeam.club.shortName ??
-                                lineup.awayTeam.club.name)}
-                          </Text>
+
+                        <View style={rm.actionBtns}>
+                          <TouchableOpacity
+                            style={[rm.actionBtn, bestPlayerId === actionPlayer.id && rm.actionBtnBest]}
+                            onPress={() => toggleBest(actionPlayer.id)}
+                            activeOpacity={0.7}>
+                            <Text style={[rm.actionBtnText, bestPlayerId === actionPlayer.id && { color: T.win }]}>
+                              Najboji igrac
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[rm.actionBtn, worstPlayerId === actionPlayer.id && rm.actionBtnWorst]}
+                            onPress={() => toggleWorst(actionPlayer.id)}
+                            activeOpacity={0.7}>
+                            <Text style={[rm.actionBtnText, worstPlayerId === actionPlayer.id && { color: T.loss }]}>
+                              Najgori igrac
+                            </Text>
+                          </TouchableOpacity>
                         </View>
-                        <Text style={rm.selectedBadge}>MOTM</Text>
+
+                        <TextInput
+                          style={rm.actionComment}
+                          placeholder="Komentar (opcionalno)..."
+                          placeholderTextColor={T.textFaint}
+                          value={playerComments[actionPlayer.id] ?? ""}
+                          onChangeText={v => setPlayerComments(prev => ({ ...prev, [actionPlayer.id]: v }))}
+                          maxLength={140}
+                        />
                       </View>
                     )}
                   </>
                 ) : (
                   <View style={{ paddingVertical: 40, alignItems: "center" }}>
-                    <Text style={{ color: T.textFaint }}>
-                      Lineup not available
-                    </Text>
+                    <Text style={{ color: T.textFaint }}>Lineup not available</Text>
                   </View>
                 )}
               </View>
@@ -1321,26 +1348,13 @@ function RateModal({
                 </Text>
 
                 <View style={rm.summaryGrid}>
-                  <SummaryTile
-                    label="Match"
-                    value={String(matchRating)}
-                    color={matchColor}
-                  />
-                  <SummaryTile
-                    label="Atmos"
-                    value={atmosphereStars > 0 ? `${atmosphereStars}★` : "—"}
-                    color={T.text}
-                  />
-                  <SummaryTile
-                    label="Ref"
-                    value={refereeStars > 0 ? `${refereeStars}★` : "—"}
-                    color={T.text}
-                  />
-                  <SummaryTile
-                    label="MOTM"
-                    value={selectedPlayer ? selectedPlayer.lastName : "—"}
-                    color={selectedPlayer ? T.red : T.textFaint}
-                  />
+                  <SummaryTile label="Match" value={String(matchRating)} color={matchColor} />
+                  <SummaryTile label="Atmos" value={atmosphereStars > 0 ? `${atmosphereStars}★` : "—"} color={T.text} />
+                  <SummaryTile label="Ref" value={refereeStars > 0 ? `${refereeStars}★` : "—"} color={T.text} />
+                </View>
+                <View style={[rm.summaryGrid, { marginTop: 8 }]}>
+                  <SummaryTile label="Najbolji" value={bestPlayer ? bestPlayer.lastName : "—"} color={bestPlayer ? T.win : T.textFaint} />
+                  <SummaryTile label="Najgori" value={worstPlayer ? worstPlayer.lastName : "—"} color={worstPlayer ? T.loss : T.textFaint} />
                 </View>
                 {comment.trim().length > 0 && (
                   <View style={rm.commentPreview}>
@@ -1592,6 +1606,36 @@ const rm = StyleSheet.create({
     letterSpacing: 0.6,
   },
   summaryValue: { fontSize: 14, fontWeight: "800", letterSpacing: -0.3 },
+
+  actionCard: {
+    marginTop: 12, padding: 14, borderRadius: 14,
+    backgroundColor: T.surfaceHi, borderWidth: 1, borderColor: T.hairlineStrong,
+    gap: 12,
+  },
+  actionHeader: { flexDirection: "row", alignItems: "center", gap: 10 },
+  actionNum: {
+    width: 30, height: 30, borderRadius: 7,
+    justifyContent: "center", alignItems: "center", flexShrink: 0,
+  },
+  actionNumHome: { backgroundColor: "#FFFFFF" },
+  actionNumAway: { backgroundColor: "#CC0000" },
+  actionNumText: { fontSize: 12, fontWeight: "800", color: "#111" },
+  actionName: { fontSize: 14, fontWeight: "700", color: T.text },
+  actionClub: { fontSize: 11, color: T.textFaint, marginTop: 1 },
+  actionBtns: { flexDirection: "row", gap: 8 },
+  actionBtn: {
+    flex: 1, paddingVertical: 10, borderRadius: 10,
+    borderWidth: 1, borderColor: T.hairline,
+    backgroundColor: T.bg, alignItems: "center",
+  },
+  actionBtnBest: { borderColor: T.win, backgroundColor: "rgba(39,195,111,0.08)" },
+  actionBtnWorst: { borderColor: T.loss, backgroundColor: "rgba(229,72,77,0.08)" },
+  actionBtnText: { fontSize: 13, fontWeight: "700", color: T.textDim },
+  actionComment: {
+    height: 36, backgroundColor: T.bg, borderRadius: 8,
+    borderWidth: 1, borderColor: T.hairline,
+    paddingHorizontal: 10, fontSize: 12, color: T.text,
+  },
 
   commentPreview: {
     marginTop: 14,

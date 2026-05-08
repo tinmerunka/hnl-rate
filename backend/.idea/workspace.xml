@@ -34,7 +34,7 @@
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/tinmerunka/hnl-rate.git&quot;,
-    &quot;accountId&quot;: &quot;df3e547f-9e34-4937-9d01-56396289dc37&quot;
+    &quot;accountId&quot;: &quot;c8a98ac1-a615-486d-a5e4-2b2136b0d727&quot;
   }
 }</component>
   <component name="ProjectColorInfo">{
@@ -69,7 +69,7 @@
     "to.speed.mode.migration.done": "true",
     "vue.rearranger.settings.migration": "true"
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="BackendApplication" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="com.hnlrate.backend.BackendApplication" />
@@ -108,6 +108,8 @@
       <workItem from="1776855908995" duration="78000" />
       <workItem from="1777920129812" duration="15000" />
       <workItem from="1778010571105" duration="635000" />
+      <workItem from="1778249777371" duration="687000" />
+      <workItem from="1778250818843" duration="239000" />
     </task>
     <servers />
   </component>
