@@ -8,13 +8,15 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 public class MatchRatingsDTO {
-    private Double matchAvg;
+    private Double averageMatchRating;
     private Integer matchCount;
-    private Double refereeAvg;
+    private Double averageRefereeRating;
     private Integer refereeCount;
-    private Double atmosphereAvg;
+    private Double averageAtmosphereRating;
     private Integer atmosphereCount;
-    private List<PlayerAvg> players;
+    private List<PlayerAvg> playerRatings;
+    private List<MatchComment> comments;
+    private Integer userMatchRating;
 
     @Getter
     @AllArgsConstructor
@@ -22,9 +24,18 @@ public class MatchRatingsDTO {
         private Integer playerId;
         private String firstName;
         private String lastName;
-        private Double avgRating;
+        private Double averageRating;
         private Integer ratingCount;
         private Long bestPlayerVotes;
         private Long worstPlayerVotes;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class MatchComment {
+        private String username;
+        private Integer rating;
+        private String comment;
+        private String createdAt;
     }
 }
