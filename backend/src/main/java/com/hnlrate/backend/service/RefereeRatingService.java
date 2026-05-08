@@ -1,5 +1,6 @@
 package com.hnlrate.backend.service;
 
+import com.hnlrate.backend.dto.RatingAdminDTO;
 import com.hnlrate.backend.model.RefereeRating;
 import com.hnlrate.backend.repository.RefereeRatingRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,10 @@ import java.util.Optional;
 public class RefereeRatingService {
 
     private final RefereeRatingRepository refereeRatingRepository;
+
+    public List<RatingAdminDTO> getAllForAdmin() {
+        return refereeRatingRepository.findAllAsDTO();
+    }
 
     public List<RefereeRating> getByMatchId(Integer matchId) {
         return refereeRatingRepository.findByMatchId(matchId);

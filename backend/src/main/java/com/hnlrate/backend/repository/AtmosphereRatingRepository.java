@@ -1,13 +1,22 @@
 package com.hnlrate.backend.repository;
 
+import com.hnlrate.backend.dto.RatingAdminDTO;
 import com.hnlrate.backend.model.AtmosphereRating;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface AtmosphereRatingRepository extends JpaRepository<AtmosphereRating,Integer> {
+public interface AtmosphereRatingRepository extends JpaRepository<AtmosphereRating, Integer> {
+
     List<AtmosphereRating> findByMatchId(Integer matchId);
     Optional<AtmosphereRating> findByMatchIdAndUserId(Integer matchId, Integer userId);
     List<AtmosphereRating> findByUserId(Integer userId);
+
+    @Query("SELECT new com.hnlrate.backend.dto.RatingAdminDTO(" +
+           "r.id, u.username, m.id, hc.name, ac.name, m.round, m.date, r.rating, r.comment, r.createdAt) " +
+           "FROM AtmosphereRating r JOIN r.user u JOIN r.match m JOIN m.homeClub hc JOIN m.awayClub ac " +
+           "ORDER BY r.createdAt DESC")
+    List<RatingAdminDTO> findAllAsDTO();
 }

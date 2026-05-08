@@ -51,4 +51,8 @@ public class RefreshTokenService {
     public void deleteByUser(User user) {
         refreshTokenRepository.deleteByUser(user);
     }
+
+    public long countActiveSessions() {
+        return refreshTokenRepository.countByExpiresAtAfter(LocalDateTime.now());
+    }
 }
