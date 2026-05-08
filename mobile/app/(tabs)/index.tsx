@@ -1,6 +1,6 @@
 import { T } from '@/constants/theme';
-import { Match, useAuth } from '@/context/auth';
-import { getMatchesByRound } from '@/services/api';
+import { Match, UserMatchRating, useAuth } from '@/context/auth';
+import { getClubMatches, getMatchesByRound, getUserRatings } from '@/services/api';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
@@ -269,6 +269,296 @@ const rp = StyleSheet.create({
   sub: { fontSize: 13, color: T.textFaint },
 });
 
+/* ── Segmented control ───────────────────────────────── */
+
+type Tab = 'all' | 'myclub' | 'rated';
+
+function SegmentedControl({ active, onChange }: {
+  active: Tab;
+  onChange: (v: Tab) => void;
+}) {
+  const tabs: { key: Tab; label: string }[] = [
+    { key: 'all', label: 'All' },
+    { key: 'myclub', label: 'My Club' },
+    { key: 'rated', label: 'Rated' },
+  ];
+  return (
+    <View style={seg.wrap}>
+      {tabs.map(t => (
+        <TouchableOpacity
+          key={t.key}
+          style={[seg.btn, active === t.key && seg.btnActive]}
+          onPress={() => onChange(t.key)}
+          activeOpacity={0.7}>
+          <Text style={[seg.label, active === t.key && seg.labelActive]}>{t.label}</Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+}
+
+const seg = StyleSheet.create({
+  wrap: {
+    flexDirection: 'row',
+    marginHorizontal: 20,
+    marginBottom: 14,
+    backgroundColor: T.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: T.hairline,
+    padding: 3,
+    gap: 3,
+  },
+  btn: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 9,
+    alignItems: 'center',
+  },
+  btnActive: { backgroundColor: T.red },
+  label: { fontSize: 13, fontWeight: '700', color: T.textDim },
+  labelActive: { color: '#FFFFFF' },
+});
+
+/* ── My Club feed ────────────────────────────────────── */
+
+function MyClubFeed({ token }: { token: string }) {
+  const { userProfile } = useAuth();
+  const router = useRouter();
+  const favoriteClub = userProfile?.favoriteClub;
+
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function load(silent = false) {
+    if (!favoriteClub) { setLoading(false); return; }
+    if (!silent) setLoading(true);
+    setError(null);
+    try {
+      const data = await getClubMatches(favoriteClub.id, token);
+      data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setMatches(data);
+    } catch (e: any) {
+      setError(e.message ?? 'Failed to load matches.');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }
+
+  useEffect(() => { load(); }, [favoriteClub?.id]);
+
+  function goToMatch(m: Match) {
+    router.push({ pathname: '/match/[id]' as any, params: { id: m.id } });
+  }
+
+  if (!favoriteClub) {
+    return (
+      <View style={cl.empty}>
+        <Ionicons name="heart-outline" size={40} color={T.textFaint} />
+        <Text style={cl.emptyTitle}>No favourite club</Text>
+        <Text style={cl.emptySub}>Pick a club to follow and see all their matches here.</Text>
+        <TouchableOpacity style={cl.emptyBtn} onPress={() => router.push('/(tabs)/clubs' as any)}>
+          <Text style={cl.emptyBtnText}>Browse clubs</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const now = new Date();
+  const upcoming = matches.filter(m => !m.finished && new Date(m.date) > now)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const finished = matches.filter(m => m.finished);
+
+  return (
+    <ScrollView
+      contentContainerStyle={s.scroll}
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={T.red} />
+      }>
+
+      {loading ? (
+        <View style={s.centered}><ActivityIndicator color={T.red} size="large" /></View>
+      ) : error ? (
+        <View style={s.errorWrap}>
+          <Ionicons name="alert-circle-outline" size={40} color={T.textFaint} />
+          <Text style={s.errorTitle}>Could not load matches</Text>
+          <Text style={s.errorSub}>{error}</Text>
+          <TouchableOpacity style={s.retryBtn} onPress={() => load()}>
+            <Text style={s.retryText}>Try again</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <>
+          {/* Club header */}
+          <View style={cl.clubHeader}>
+            <ClubAvatar club={favoriteClub} size={36} />
+            <View>
+              <Text style={cl.clubName}>{favoriteClub.name}</Text>
+              <Text style={cl.clubSub}>{matches.length} matches</Text>
+            </View>
+          </View>
+
+          {finished.length > 0 && (
+            <View style={s.section}>
+              <SectionHeader title="Results" count={finished.length} />
+              {finished.map(m => (
+                <View key={m.id} style={{ marginBottom: 8 }}>
+                  <MatchCard match={m} onPress={() => goToMatch(m)} />
+                </View>
+              ))}
+            </View>
+          )}
+
+          {upcoming.length > 0 && (
+            <View style={s.section}>
+              <SectionHeader title="Upcoming" count={upcoming.length} />
+              {upcoming.map(m => (
+                <View key={m.id} style={{ marginBottom: 8 }}>
+                  <MatchCard match={m} onPress={() => goToMatch(m)} />
+                </View>
+              ))}
+            </View>
+          )}
+
+          {matches.length === 0 && (
+            <View style={s.centered}>
+              <Ionicons name="football-outline" size={40} color={T.textFaint} />
+              <Text style={s.emptyText}>No matches found</Text>
+            </View>
+          )}
+        </>
+      )}
+    </ScrollView>
+  );
+}
+
+const cl = StyleSheet.create({
+  clubHeader: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    marginBottom: 20, paddingBottom: 16,
+    borderBottomWidth: 1, borderBottomColor: T.hairline,
+  },
+  clubName: { fontSize: 16, fontWeight: '800', color: T.text, letterSpacing: -0.3 },
+  clubSub: { fontSize: 12, color: T.textFaint, fontWeight: '500', marginTop: 1 },
+  empty: { flex: 1, alignItems: 'center', paddingTop: 80, gap: 12, paddingHorizontal: 40 },
+  emptyTitle: { fontSize: 17, fontWeight: '700', color: T.text },
+  emptySub: { fontSize: 14, color: T.textDim, textAlign: 'center', lineHeight: 20 },
+  emptyBtn: {
+    marginTop: 4, paddingHorizontal: 24, paddingVertical: 11,
+    borderRadius: 12, backgroundColor: T.red,
+  },
+  emptyBtnText: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
+});
+
+/* ── Rated feed ─────────────────────────────────────── */
+
+function RatedMatchCard({ rating, onPress }: { rating: UserMatchRating; onPress: () => void }) {
+  const [homeScore, awayScore] = rating.result ? rating.result.split(':') : [null, null];
+
+  return (
+    <TouchableOpacity style={[mc.card, { paddingRight: 14 }]} onPress={onPress} activeOpacity={0.75}>
+      <View style={mc.inner}>
+        <View style={mc.teamRow}>
+          <Text style={mc.teamName} numberOfLines={1}>{rating.homeClub}</Text>
+          {homeScore != null && <Text style={[mc.score, { color: T.text }]}>{homeScore}</Text>}
+        </View>
+        <View style={mc.teamRow}>
+          <Text style={mc.teamName} numberOfLines={1}>{rating.awayClub}</Text>
+          {awayScore != null && <Text style={[mc.score, { color: T.text }]}>{awayScore}</Text>}
+        </View>
+      </View>
+      <View style={rdf.right}>
+        <View style={mc.ftBadge}><Text style={mc.ftText}>FT</Text></View>
+        <View style={rdf.pills}>
+          {rating.matchRating && <View style={rdf.pill}><Text style={rdf.pillText}>⚽ {rating.matchRating.rating}</Text></View>}
+          {rating.refereeRating && <View style={rdf.pill}><Text style={rdf.pillText}>🏁 {rating.refereeRating.rating}</Text></View>}
+          {rating.atmosphereRating && <View style={rdf.pill}><Text style={rdf.pillText}>🔥 {rating.atmosphereRating.rating}</Text></View>}
+        </View>
+        <Ionicons name="chevron-forward" size={14} color={T.textFaint} style={{ marginTop: 4 }} />
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+const rdf = StyleSheet.create({
+  right: { alignItems: 'flex-end', gap: 4, minWidth: 60 },
+  pills: { flexDirection: 'row', gap: 4, flexWrap: 'wrap', justifyContent: 'flex-end' },
+  pill: {
+    backgroundColor: T.surfaceHi, borderRadius: 6,
+    paddingHorizontal: 5, paddingVertical: 2,
+    borderWidth: 1, borderColor: T.hairline,
+  },
+  pillText: { fontSize: 10, fontWeight: '700', color: T.textDim },
+});
+
+function RatedFeed({ token }: { token: string }) {
+  const router = useRouter();
+  const [ratings, setRatings] = useState<UserMatchRating[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function load(silent = false) {
+    if (!silent) setLoading(true);
+    setError(null);
+    try {
+      const data = await getUserRatings(token);
+      data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setRatings(data);
+    } catch (e: any) {
+      setError(e.message ?? 'Failed to load ratings.');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }
+
+  useEffect(() => { load(); }, []);
+
+  return (
+    <ScrollView
+      contentContainerStyle={s.scroll}
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} tintColor={T.red} />
+      }>
+      {loading ? (
+        <View style={s.centered}><ActivityIndicator color={T.red} size="large" /></View>
+      ) : error ? (
+        <View style={s.errorWrap}>
+          <Ionicons name="alert-circle-outline" size={40} color={T.textFaint} />
+          <Text style={s.errorTitle}>Could not load ratings</Text>
+          <Text style={s.errorSub}>{error}</Text>
+          <TouchableOpacity style={s.retryBtn} onPress={() => load()}>
+            <Text style={s.retryText}>Try again</Text>
+          </TouchableOpacity>
+        </View>
+      ) : ratings.length === 0 ? (
+        <View style={s.centered}>
+          <Ionicons name="star-outline" size={40} color={T.textFaint} />
+          <Text style={s.emptyText}>No rated matches yet</Text>
+        </View>
+      ) : (
+        <View style={s.section}>
+          <SectionHeader title="Your Ratings" count={ratings.length} />
+          {ratings.map(r => (
+            <View key={r.matchId} style={{ marginBottom: 8 }}>
+              <RatedMatchCard
+                rating={r}
+                onPress={() => router.push({ pathname: '/match/[id]' as any, params: { id: r.matchId } })}
+              />
+            </View>
+          ))}
+        </View>
+      )}
+    </ScrollView>
+  );
+}
+
 /* ── Screen ──────────────────────────────────────────── */
 
 const STARTING_ROUND = 32;
@@ -277,6 +567,7 @@ export default function MatchesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { token } = useAuth();
+  const [activeTab, setActiveTab] = useState<Tab>('all');
 
   const [round, setRound] = useState(STARTING_ROUND);
   const [matches, setMatches] = useState<Match[]>([]);
@@ -347,15 +638,26 @@ export default function MatchesScreen() {
         </View>
       </View>
 
-      {/* Round pill */}
-      <RoundPill
-        round={round}
-        loading={loading && !refreshing}
-        onPrev={() => { if (round > 1) setRound(r => r - 1); }}
-        onNext={() => setRound(r => r + 1)}
-      />
+      {/* Tab selector */}
+      <SegmentedControl active={activeTab} onChange={setActiveTab} />
 
-      <ScrollView
+      {/* My Club feed */}
+      {activeTab === 'myclub' && token && <MyClubFeed token={token} />}
+
+      {/* Rated feed */}
+      {activeTab === 'rated' && token && <RatedFeed token={token} />}
+
+      {/* Round pill — only for All tab */}
+      {activeTab === 'all' && (
+        <RoundPill
+          round={round}
+          loading={loading && !refreshing}
+          onPrev={() => { if (round > 1) setRound(r => r - 1); }}
+          onNext={() => setRound(r => r + 1)}
+        />
+      )}
+
+      {activeTab === 'all' && <ScrollView
         contentContainerStyle={s.scroll}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -424,7 +726,7 @@ export default function MatchesScreen() {
             )}
           </>
         )}
-      </ScrollView>
+      </ScrollView>}
     </View>
   );
 }

@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -91,6 +92,7 @@ public class MatchController {
         rating.setUser(user);
         rating.setRating(request.getRating());
         rating.setComment(request.getComment());
+        rating.setCreatedAt(java.time.LocalDateTime.now());
 
         matchRatingService.save(rating);
         return ResponseEntity.ok().build();
@@ -117,6 +119,7 @@ public class MatchController {
         rating.setUser(user);
         rating.setRating(request.getRating());
         rating.setComment(request.getComment());
+        rating.setCreatedAt(java.time.LocalDateTime.now());
 
         refereeRatingService.save(rating);
         return ResponseEntity.ok().build();
@@ -141,6 +144,7 @@ public class MatchController {
         rating.setUser(user);
         rating.setRating(request.getRating());
         rating.setComment(request.getComment());
+        rating.setCreatedAt(java.time.LocalDateTime.now());
 
         atmosphereRatingService.save(rating);
         return ResponseEntity.ok().build();
@@ -173,6 +177,7 @@ public class MatchController {
             rating.setComment(req.getComment());
             rating.setBestPlayer(Boolean.TRUE.equals(req.getBestPlayer()));
             rating.setWorstPlayer(Boolean.TRUE.equals(req.getWorstPlayer()));
+            rating.setCreatedAt(java.time.LocalDateTime.now());
 
             playerRatingService.save(rating);
         }
@@ -181,17 +186,17 @@ public class MatchController {
     }
 
     @GetMapping("/{id}/ratings")
-    public ResponseEntity<MatchRatingsDTO> getRatings(@PathVariable Integer id) {
+    public ResponseEntity<MatchRatingsDTO> getRatings(@PathVariable Integer id, Authentication auth) {
         if (matchService.getById(id).isEmpty()) return ResponseEntity.notFound().build();
 
         List<MatchRating> matchRatings = matchRatingService.getByMatchId(id);
-        double matchAvg = matchRatings.stream().mapToInt(MatchRating::getRating).average().orElse(0.0);
+        Double matchAvg = matchRatings.isEmpty() ? null : matchRatings.stream().mapToInt(MatchRating::getRating).average().orElse(0.0);
 
         List<RefereeRating> refRatings = refereeRatingService.getByMatchId(id);
-        double refAvg = refRatings.stream().mapToInt(RefereeRating::getRating).average().orElse(0.0);
+        Double refAvg = refRatings.isEmpty() ? null : refRatings.stream().mapToInt(RefereeRating::getRating).average().orElse(0.0);
 
         List<AtmosphereRating> atmRatings = atmosphereRatingService.getByMatchId(id);
-        double atmAvg = atmRatings.stream().mapToInt(AtmosphereRating::getRating).average().orElse(0.0);
+        Double atmAvg = atmRatings.isEmpty() ? null : atmRatings.stream().mapToInt(AtmosphereRating::getRating).average().orElse(0.0);
 
         List<PlayerRating> playerRatings = playerRatingService.getByMatchId(id);
         Map<Integer, List<PlayerRating>> byPlayer = playerRatings.stream()
@@ -208,11 +213,34 @@ public class MatchController {
                 })
                 .toList();
 
+        List<MatchRatingsDTO.MatchComment> comments = matchRatings.stream()
+                .filter(r -> r.getComment() != null && !r.getComment().isBlank())
+                .sorted(Comparator.comparing(MatchRating::getCreatedAt).reversed())
+                .map(r -> new MatchRatingsDTO.MatchComment(
+                        r.getUser().getUsername(),
+                        r.getRating(),
+                        r.getComment(),
+                        r.getCreatedAt().toString()
+                ))
+                .toList();
+
+        Integer userMatchRating = null;
+        if (auth != null) {
+            User user = userService.getByUsername(auth.getName()).orElse(null);
+            if (user != null) {
+                userMatchRating = matchRatingService.getByMatchAndUser(id, user.getId())
+                        .map(MatchRating::getRating)
+                        .orElse(null);
+            }
+        }
+
         return ResponseEntity.ok(new MatchRatingsDTO(
                 matchAvg, matchRatings.size(),
                 refAvg, refRatings.size(),
                 atmAvg, atmRatings.size(),
-                playerAvgs
+                playerAvgs,
+                comments,
+                userMatchRating
         ));
     }
 }

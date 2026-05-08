@@ -105,11 +105,23 @@ export interface PlayerRatingResult {
   worstPlayerVotes: number;
 }
 
+export interface MatchComment {
+  username: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+}
+
 export interface MatchRatings {
   averageMatchRating: number | null;
+  matchCount: number;
   averageRefereeRating: number | null;
+  refereeCount: number;
   averageAtmosphereRating: number | null;
+  atmosphereCount: number;
   playerRatings: PlayerRatingResult[];
+  comments: MatchComment[];
+  userMatchRating: number | null;
 }
 
 interface AuthContextType {

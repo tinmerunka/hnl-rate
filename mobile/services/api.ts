@@ -123,7 +123,7 @@ export async function getUserRatings(token: string): Promise<UserMatchRating[]> 
 export async function getMatchRatings(matchId: number, token: string): Promise<MatchRatings> {
   const response = await authFetchRaw(`/api/matches/${matchId}/ratings`, token);
   if (response.status === 204) {
-    return { averageMatchRating: null, averageRefereeRating: null, averageAtmosphereRating: null, playerRatings: [] };
+    return { averageMatchRating: null, matchCount: 0, averageRefereeRating: null, refereeCount: 0, averageAtmosphereRating: null, atmosphereCount: 0, playerRatings: [], comments: [], userMatchRating: null };
   }
   if (!response.ok) {
     const text = await response.text();
@@ -143,8 +143,8 @@ async function postRating(path: string, token: string, body: object): Promise<vo
   }
 }
 
-export async function rateMatch(matchId: number, rating: number, token: string): Promise<void> {
-  return postRating(`/api/matches/${matchId}/rate`, token, { rating });
+export async function rateMatch(matchId: number, rating: number, token: string, comment?: string): Promise<void> {
+  return postRating(`/api/matches/${matchId}/rate`, token, comment ? { rating, comment } : { rating });
 }
 
 export async function rateReferee(matchId: number, rating: number, token: string): Promise<void> {
