@@ -74,26 +74,23 @@ export default function DashboardLayout({ children }) {
         {/* Brand */}
         <div className="flex items-center gap-2.5 px-5 py-5 border-b border-white/[0.06]">
           <div className="w-[28px] h-[28px] bg-hnl-red rounded-full shrink-0" />
-          <span className="text-white font-bold text-[14px] tracking-tight">
+          <span className="text-white font-bold font-display text-[14px] tracking-tight">
             HNL Rate<span className="text-hnl-red">.</span>
           </span>
         </div>
 
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-          <p className="text-[9px] font-bold tracking-[0.18em] uppercase text-white/25 px-2 mb-2">
-            Upravljanje
-          </p>
           {NAV.map(({ to, label, icon }) => (
             <NavLink
               key={to}
               to={to}
               end={to === '/dashboard'}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150 ${
+                `flex items-center gap-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150 border-l-2 pl-[10px] pr-3 ${
                   isActive
-                    ? 'bg-hnl-red/15 text-hnl-red'
-                    : 'text-white/45 hover:text-white/80 hover:bg-white/[0.05]'
+                    ? 'border-hnl-red bg-hnl-red/10 text-hnl-red'
+                    : 'border-transparent text-white/45 hover:text-white/80 hover:bg-white/[0.05]'
                 }`
               }
             >

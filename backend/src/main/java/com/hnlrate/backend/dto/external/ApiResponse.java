@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -12,4 +13,5 @@ import java.util.List;
 public class ApiResponse<T> {
     private List<T> response;
     private PagingDto paging;
+    private Object errors;
 }

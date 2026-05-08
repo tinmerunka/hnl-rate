@@ -1,6 +1,8 @@
 package com.hnlrate.backend.client;
 
 import com.hnlrate.backend.dto.external.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
@@ -11,6 +13,8 @@ import java.util.List;
 
 @Component
 public class ApiFootballClient {
+
+    private static final Logger log = LoggerFactory.getLogger(ApiFootballClient.class);
 
     private final RestClient restClient;
 
@@ -38,12 +42,16 @@ public class ApiFootballClient {
     }
 
     public List<FixtureResponseItem> getFixtures() {
+        log.info("[API] getFixtures() calling league={} season={}", leagueId, season);
         ApiResponse<FixtureResponseItem> response = restClient.get()
                 .uri("/fixtures?league={league}&season={season}", leagueId, season)
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {});
 
-        return response.getResponse();
+        int size = response != null && response.getResponse() != null ? response.getResponse().size() : -1;
+        log.info("[API] getFixtures() response size={} errors={}", size,
+                response != null ? response.getErrors() : "null");
+        return response != null && response.getResponse() != null ? response.getResponse() : List.of();
     }
 
     public List<LineupResponseItem> getLineups(int fixtureId) {
