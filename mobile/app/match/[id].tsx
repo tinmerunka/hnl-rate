@@ -29,6 +29,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   useWindowDimensions,
   View,
@@ -600,7 +601,7 @@ const sr = StyleSheet.create({
 
 /* ── Card stack rating modal ──────────────────────────────── */
 
-type RateStep = 1 | 2 | 3 | 4;
+type RateStep = 1 | 2 | 3 | 4 | 5;
 
 type PlayerWithClub = LineupPlayer & { isHome: boolean };
 
@@ -621,7 +622,19 @@ function RateModal({
   const [atmosphereStars, setAtmosphereStars] = useState(0);
   const [refereeStars, setRefereeStars] = useState(0);
   const [motmPlayerId, setMotmPlayerId] = useState<number | null>(null);
+  const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (visible) {
+      setStep(1);
+      setMatchRating(7);
+      setAtmosphereStars(0);
+      setRefereeStars(0);
+      setMotmPlayerId(null);
+      setComment('');
+    }
+  }, [visible]);
 
   const allPlayers: PlayerWithClub[] = lineup
     ? [
@@ -636,7 +649,7 @@ function RateModal({
     setSubmitting(true);
     try {
       const promises: Promise<void>[] = [];
-      promises.push(rateMatch(matchId, matchRating, token));
+      promises.push(rateMatch(matchId, matchRating, token, comment.trim() || undefined));
       if (atmosphereStars > 0) promises.push(rateAtmosphere(matchId, atmosphereStars * 2, token));
       if (refereeStars > 0 && hasReferee) promises.push(rateReferee(matchId, refereeStars * 2, token));
       if (motmPlayerId) {
@@ -673,11 +686,11 @@ function RateModal({
           </TouchableOpacity>
           {/* Progress */}
           <View style={rm.progress}>
-            {([1, 2, 3, 4] as RateStep[]).map(i => (
+            {([1, 2, 3, 4, 5] as RateStep[]).map(i => (
               <View key={i} style={[rm.progressBar, i <= step && rm.progressBarActive]} />
             ))}
           </View>
-          <Text style={rm.stepCount}>{step}/4</Text>
+          <Text style={rm.stepCount}>{step}/5</Text>
         </View>
 
         <ScrollView contentContainerStyle={rm.scroll} showsVerticalScrollIndicator={false}>
@@ -787,7 +800,26 @@ function RateModal({
 
             {step === 4 && (
               <View>
-                <Text style={rm.stepLabel}>STEP 4 · REVIEW &amp; CONFIRM</Text>
+                <Text style={rm.stepLabel}>STEP 4 · YOUR TAKE</Text>
+                <Text style={rm.cardTitle}>Say something.</Text>
+                <Text style={rm.cardSub}>Optional — share your thoughts on the match.</Text>
+                <TextInput
+                  style={rm.commentInput}
+                  placeholder="What stood out? Any thoughts on the game..."
+                  placeholderTextColor={T.textFaint}
+                  multiline
+                  maxLength={280}
+                  value={comment}
+                  onChangeText={setComment}
+                  textAlignVertical="top"
+                />
+                <Text style={rm.commentCount}>{comment.length}/280</Text>
+              </View>
+            )}
+
+            {step === 5 && (
+              <View>
+                <Text style={rm.stepLabel}>STEP 5 · REVIEW &amp; CONFIRM</Text>
                 <Text style={rm.cardTitle}>Your submission.</Text>
                 <Text style={rm.cardSub}>Review your ratings before posting.</Text>
 
@@ -801,6 +833,12 @@ function RateModal({
                     color={selectedPlayer ? T.red : T.textFaint}
                   />
                 </View>
+                {comment.trim().length > 0 && (
+                  <View style={rm.commentPreview}>
+                    <Text style={rm.commentPreviewLabel}>YOUR TAKE</Text>
+                    <Text style={rm.commentPreviewText} numberOfLines={4}>{comment.trim()}</Text>
+                  </View>
+                )}
               </View>
             )}
           </View>
@@ -815,12 +853,12 @@ function RateModal({
               <Text style={rm.skipText}>← Back</Text>
             </TouchableOpacity>
           )}
-          {step < 4 ? (
+          {step < 5 ? (
             <TouchableOpacity
               style={rm.nextBtn}
               onPress={() => setStep(s => (s + 1) as RateStep)}
               activeOpacity={0.85}>
-              <Text style={rm.nextText}>Next →</Text>
+              <Text style={rm.nextText}>{step === 4 ? 'Review →' : 'Next →'}</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
@@ -928,6 +966,25 @@ const rm = StyleSheet.create({
   selectedSub: { fontSize: 11, color: T.textDim, marginTop: 2 },
   selectedBadge: { fontSize: 10, fontWeight: '800', color: T.red, letterSpacing: 0.5 },
 
+  commentInput: {
+    backgroundColor: T.bg,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: T.hairlineStrong,
+    padding: 14,
+    color: T.text,
+    fontSize: 14,
+    lineHeight: 20,
+    minHeight: 120,
+    marginTop: 4,
+  },
+  commentCount: {
+    fontSize: 11,
+    color: T.textFaint,
+    textAlign: 'right',
+    marginTop: 6,
+  },
+
   summaryGrid: { flexDirection: 'row', gap: 8, marginTop: 16 },
   summaryTile: {
     flex: 1, padding: 12, borderRadius: 12,
@@ -935,6 +992,17 @@ const rm = StyleSheet.create({
   },
   summaryLabel: { fontSize: 9, fontWeight: '700', color: T.textFaint, letterSpacing: 0.6 },
   summaryValue: { fontSize: 14, fontWeight: '800', letterSpacing: -0.3 },
+
+  commentPreview: {
+    marginTop: 14,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: T.bg,
+    borderWidth: 1,
+    borderColor: T.hairlineStrong,
+  },
+  commentPreviewLabel: { fontSize: 9, fontWeight: '700', color: T.textFaint, letterSpacing: 0.6, marginBottom: 6 },
+  commentPreviewText: { fontSize: 13, color: T.textDim, lineHeight: 18 },
 
   footer: {
     flexDirection: 'row',
