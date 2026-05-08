@@ -9,7 +9,12 @@
       "Bash(cp \"C:\\\\Users\\\\meri4\\\\.claude\\\\projects\\\\c--Users-meri4-Desktop-OICAR-hnl-rate-mobile\\\\df4f8358-6654-4f77-881b-458af81528da\\\\tool-results\\\\webfetch-1778012523206-5vjwxi.bin\" /tmp/design.gz)",
       "Bash(gunzip -c /tmp/design.gz)",
       "Read(//tmp/**)",
-      "Bash(tar -xf /tmp/design_extracted -C /tmp/)"
+      "Bash(tar -xf /tmp/design_extracted -C /tmp/)",
+      "Bash(netstat -ano)",
+      "Bash(findstr :8081)",
+      "Bash(tasklist /fi \"PID eq 3020\")",
+      "PowerShell(Get-Process -Id 3020)",
+      "PowerShell(Stop-Process -Id 3020 -Force)"
     ]
   }
 }
