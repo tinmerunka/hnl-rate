@@ -10,6 +10,8 @@ import Matches from './pages/dashboard/Matches';
 import Players from './pages/dashboard/Players';
 import Referees from './pages/dashboard/Referees';
 import Users from './pages/dashboard/Users';
+import Comments from './pages/dashboard/Comments';
+import Ratings from './pages/dashboard/Ratings';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -39,6 +41,8 @@ function App() {
           <Route path="/dashboard/players"   element={<DashboardRoute><Players /></DashboardRoute>} />
           <Route path="/dashboard/referees"  element={<DashboardRoute><Referees /></DashboardRoute>} />
           <Route path="/dashboard/users"     element={<DashboardRoute><Users /></DashboardRoute>} />
+          <Route path="/dashboard/comments"  element={<DashboardRoute><Comments /></DashboardRoute>} />
+          <Route path="/dashboard/ratings"   element={<DashboardRoute><Ratings /></DashboardRoute>} />
           <Route path="*"                    element={<Navigate to="/dashboard" />} />
         </Routes>
       </AuthProvider>

@@ -1,7 +1,9 @@
 package com.hnlrate.backend.controller;
 
 import com.hnlrate.backend.dto.ClubDTO;
+import com.hnlrate.backend.dto.CommentAdminDTO;
 import com.hnlrate.backend.dto.MatchDTO;
+import com.hnlrate.backend.dto.RatingAdminDTO;
 import com.hnlrate.backend.dto.PlayerDTO;
 import com.hnlrate.backend.dto.RefereeDTO;
 import com.hnlrate.backend.dto.UserAdminDTO;
@@ -11,6 +13,7 @@ import com.hnlrate.backend.dto.request.PlayerRequest;
 import com.hnlrate.backend.dto.request.RefereeRequest;
 import com.hnlrate.backend.model.Club;
 import com.hnlrate.backend.model.Match;
+import com.hnlrate.backend.model.MatchRating;
 import com.hnlrate.backend.model.Player;
 import com.hnlrate.backend.model.Referee;
 import com.hnlrate.backend.model.User;
@@ -33,6 +36,10 @@ public class AdminController {
     private final PlayerService playerService;
     private final RefereeService refereeService;
     private final UserService userService;
+    private final MatchRatingService matchRatingService;
+    private final RefereeRatingService refereeRatingService;
+    private final AtmosphereRatingService atmosphereRatingService;
+    private final RefreshTokenService refreshTokenService;
 
     // ── Sync ────────────────────────────────────────────────────────────────
 
@@ -213,5 +220,65 @@ public class AdminController {
         Boolean blocked = body.get("blocked");
         user.setBlocked(blocked != null ? blocked : !user.getBlocked());
         return ResponseEntity.ok(new UserAdminDTO(userService.save(user)));
+    }
+
+    // ── Comments ─────────────────────────────────────────────────────────────
+
+    @GetMapping("/comments")
+    public ResponseEntity<List<CommentAdminDTO>> getComments() {
+        return ResponseEntity.ok(matchRatingService.getAllWithComments());
+    }
+
+    @DeleteMapping("/comments/{id}")
+    public ResponseEntity<Void> deleteComment(@PathVariable Integer id) {
+        MatchRating rating = matchRatingService.getById(id)
+                .orElseThrow(() -> new RuntimeException("Komentar nije pronađen"));
+        rating.setComment(null);
+        matchRatingService.save(rating);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ── Ratings ──────────────────────────────────────────────────────────────
+
+    @GetMapping("/ratings")
+    public ResponseEntity<List<RatingAdminDTO>> getAllRatings() {
+        return ResponseEntity.ok(matchRatingService.getAllForAdmin());
+    }
+
+    @GetMapping("/referee-ratings")
+    public ResponseEntity<List<RatingAdminDTO>> getAllRefereeRatings() {
+        return ResponseEntity.ok(refereeRatingService.getAllForAdmin());
+    }
+
+    @GetMapping("/atmosphere-ratings")
+    public ResponseEntity<List<RatingAdminDTO>> getAllAtmosphereRatings() {
+        return ResponseEntity.ok(atmosphereRatingService.getAllForAdmin());
+    }
+
+    @DeleteMapping("/referee-ratings/{id}")
+    public ResponseEntity<Void> deleteRefereeRating(@PathVariable Integer id) {
+        refereeRatingService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/atmosphere-ratings/{id}")
+    public ResponseEntity<Void> deleteAtmosphereRating(@PathVariable Integer id) {
+        atmosphereRatingService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+@DeleteMapping("/ratings/{id}")
+    public ResponseEntity<Void> deleteRating(@PathVariable Integer id) {
+        matchRatingService.getById(id)
+                .orElseThrow(() -> new RuntimeException("Ocjena nije pronađena"));
+        matchRatingService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ── Stats ─────────────────────────────────────────────────────────────────
+
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Object>> getStats() {
+        return ResponseEntity.ok(Map.of("activeSessions", refreshTokenService.countActiveSessions()));
     }
 }

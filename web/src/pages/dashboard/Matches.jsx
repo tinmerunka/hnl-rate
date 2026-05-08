@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { getMatches, createMatch, updateMatch, deleteMatch, syncMatches } from '../../services/matchService';
 import { getClubs } from '../../services/clubService';
 import { getReferees } from '../../services/refereeService';
+import { getRatings, deleteRating } from '../../services/ratingAdminService';
 import Modal from '../../components/Modal';
 
 const EMPTY_FORM = { homeClubId: '', awayClubId: '', refereeId: '', round: '', date: '', result: '', finished: false };
@@ -83,6 +84,216 @@ function MatchForm({ value, onChange, clubs, referees }) {
   );
 }
 
+const fmtDateFull = (d) =>
+  d ? new Date(d).toLocaleDateString('hr-HR', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+
+function RatingBadge({ rating }) {
+  const color =
+    rating >= 7 ? 'bg-green-500/10 text-green-400' :
+    rating >= 5 ? 'bg-white/[0.06] text-white/50' :
+                  'bg-hnl-red/10 text-hnl-red';
+  return (
+    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${color}`}>
+      {rating}/10
+    </span>
+  );
+}
+
+function MatchRatingsView({ match, onBack }) {
+  const [ratings, setRatings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    getRatings()
+      .then((all) => setRatings(all.filter((r) => r.matchId === match.id)))
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [match.id]);
+
+  const handleDelete = async () => {
+    setSaving(true);
+    try {
+      await deleteRating(deleteTarget.id);
+      setRatings((prev) => prev.filter((r) => r.id !== deleteTarget.id));
+      setDeleteTarget(null);
+    } catch (e) {
+      setError(e.message);
+      setDeleteTarget(null);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const filtered = ratings.filter((r) =>
+    !search || r.username.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const avg = ratings.length
+    ? (ratings.reduce((s, r) => s + r.rating, 0) / ratings.length).toFixed(1)
+    : null;
+
+  const ghost = 'px-4 py-2 rounded-lg text-white/40 hover:text-white/70 hover:bg-white/[0.05] text-[13px] font-medium transition-all cursor-pointer';
+  const danger = 'px-4 py-2 rounded-lg bg-hnl-red hover:bg-hnl-red-dark disabled:opacity-50 text-white text-[13px] font-semibold transition-colors cursor-pointer';
+
+  return (
+    <div>
+      {/* Back + match header */}
+      <div className="flex items-center gap-4 mb-6">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-2 text-[13px] font-medium text-white/40 hover:text-white/70 transition-colors cursor-pointer"
+        >
+          <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+            <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+          </svg>
+          Sve utakmice
+        </button>
+        <div className="h-4 w-px bg-white/[0.1]" />
+        <div>
+          <p className="text-[11px] text-white/30 font-medium">Kolo {match.round} · {fmtDateFull(match.date)} · Ocjene</p>
+          <h2 className="text-[18px] font-bold text-white leading-tight">
+            {match.homeClub?.name ?? '—'} <span className="text-white/30">vs</span> {match.awayClub?.name ?? '—'}
+          </h2>
+        </div>
+        {match.result && (
+          <span className="ml-auto text-[13px] font-black text-white/50 bg-white/[0.06] px-3 py-1 rounded-lg">
+            {match.result}
+          </span>
+        )}
+      </div>
+
+      {/* Summary strip */}
+      {!loading && (
+        <div className="flex items-center gap-6 mb-5 px-5 py-3.5 bg-hnl-card rounded-xl border border-white/[0.06]">
+          <div>
+            <p className="text-[10px] font-bold text-white/25 uppercase tracking-widest">Ocjene</p>
+            <p className="text-[22px] font-black text-white leading-tight">{ratings.length}</p>
+          </div>
+          <div className="w-px h-8 bg-white/[0.06]" />
+          <div>
+            <p className="text-[10px] font-bold text-white/25 uppercase tracking-widest">Prosjek</p>
+            <p className={`text-[22px] font-black leading-tight ${avg >= 7 ? 'text-green-400' : avg >= 5 ? 'text-white' : avg ? 'text-hnl-red' : 'text-white/25'}`}>
+              {avg ?? '—'}
+            </p>
+          </div>
+          <div className="w-px h-8 bg-white/[0.06]" />
+          <div>
+            <p className="text-[10px] font-bold text-white/25 uppercase tracking-widest">S komentarom</p>
+            <p className="text-[22px] font-black text-white leading-tight">
+              {ratings.filter((r) => r.comment).length}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="mb-4 px-4 py-3 bg-hnl-red/10 border border-hnl-red/25 rounded-lg text-hnl-red text-sm">{error}</div>
+      )}
+
+      {/* Filter */}
+      <div className="flex items-center gap-2 mb-4">
+        <input
+          type="text"
+          placeholder="Pretraži po korisniku..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-64 bg-white/[0.05] border border-white/[0.08] focus:border-hnl-red rounded-lg px-3 py-1.5 text-sm text-white outline-none transition-colors placeholder:text-white/20"
+        />
+        {!loading && <span className="ml-auto text-[12px] text-white/25">{filtered.length} ocjena</span>}
+      </div>
+
+      <div className="bg-hnl-card rounded-xl border border-white/[0.06] overflow-hidden">
+        {loading ? (
+          [...Array(4)].map((_, i) => (
+            <div key={i} className={`flex items-center gap-4 px-5 py-4 ${i < 3 ? 'border-b border-white/[0.04]' : ''}`}>
+              <div className="h-7 w-7 rounded-full bg-white/[0.06] animate-pulse shrink-0" />
+              <div className="h-4 w-28 rounded bg-white/[0.06] animate-pulse" />
+              <div className="h-5 w-12 rounded-full bg-white/[0.06] animate-pulse" />
+              <div className="flex-1 h-4 rounded bg-white/[0.06] animate-pulse" />
+              <div className="h-4 w-20 rounded bg-white/[0.06] animate-pulse" />
+            </div>
+          ))
+        ) : filtered.length === 0 ? (
+          <div className="py-16 text-center text-white/25 text-sm">
+            {search ? 'Nema ocjena za uneseni filter.' : 'Nema ocjena za ovu utakmicu.'}
+          </div>
+        ) : (
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-white/[0.06]">
+                <th className="text-left text-[11px] font-semibold text-white/25 px-5 py-3">Korisnik</th>
+                <th className="text-left text-[11px] font-semibold text-white/25 px-4 py-3 w-20">Ocjena</th>
+                <th className="text-left text-[11px] font-semibold text-white/25 px-4 py-3">Komentar</th>
+                <th className="text-left text-[11px] font-semibold text-white/25 px-4 py-3 w-28">Datum</th>
+                <th className="w-24 px-4 py-3" />
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((r, i) => (
+                <tr key={r.id}
+                  className={`${i !== filtered.length - 1 ? 'border-b border-white/[0.04]' : ''} hover:bg-white/[0.02] transition-colors`}>
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-full bg-white/[0.07] flex items-center justify-center text-[12px] font-bold text-white/50 shrink-0 select-none">
+                        {r.username[0].toUpperCase()}
+                      </div>
+                      <p className="text-[13px] font-semibold text-white">{r.username}</p>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3.5"><RatingBadge rating={r.rating} /></td>
+                  <td className="px-4 py-3.5 max-w-xs">
+                    {r.comment
+                      ? <p className="text-[13px] text-white/55 line-clamp-2 leading-5">{r.comment}</p>
+                      : <span className="text-white/20 text-sm">—</span>}
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <p className="text-[12px] text-white/30">{fmtDateFull(r.createdAt)}</p>
+                  </td>
+                  <td className="px-4 py-3.5 text-right">
+                    <button
+                      onClick={() => setDeleteTarget(r)}
+                      className="text-[12px] font-medium px-3 py-1 rounded-lg border border-white/10 text-white/35 hover:text-hnl-red hover:border-hnl-red/25 hover:bg-hnl-red/5 transition-all cursor-pointer"
+                    >
+                      Ukloni
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {deleteTarget && (
+        <Modal
+          title="Ukloni ocjenu"
+          onClose={() => setDeleteTarget(null)}
+          footer={
+            <>
+              <button onClick={() => setDeleteTarget(null)} className={ghost}>Otkaži</button>
+              <button onClick={handleDelete} disabled={saving} className={danger}>
+                {saving ? 'Uklanjanje...' : 'Ukloni'}
+              </button>
+            </>
+          }
+        >
+          <p className="text-white/55 text-sm">
+            Uklonit ćeš ocjenu{' '}
+            <span className="text-white font-semibold">{deleteTarget.rating}/10</span>{' '}
+            korisnika <span className="text-white font-semibold">{deleteTarget.username}</span>.
+            {deleteTarget.comment && ' Komentar uz ocjenu će također biti uklonjen.'}
+          </p>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
 const syncIdle = (
   <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
     <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
@@ -106,6 +317,7 @@ export default function Matches() {
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
   const [syncState, setSyncState] = useState('idle');
+  const [ratingsMatch, setRatingsMatch] = useState(null);
 
   const fetchAll = useCallback(async () => {
     setLoading(true); setError('');
@@ -177,6 +389,14 @@ export default function Matches() {
   const syncCls = syncState === 'ok' ? 'border-green-500/25 text-green-400 bg-green-500/5' : syncState === 'error' ? 'border-hnl-red/25 text-hnl-red bg-hnl-red/5' : 'border-white/10 text-white/45 hover:text-white/75 hover:border-white/20';
   const ghost = 'px-4 py-2 rounded-lg text-white/40 hover:text-white/70 hover:bg-white/[0.05] text-[13px] font-medium transition-all cursor-pointer';
   const primary = 'px-4 py-2 rounded-lg bg-hnl-red hover:bg-hnl-red-dark disabled:opacity-50 text-white text-[13px] font-semibold transition-colors cursor-pointer';
+
+  if (ratingsMatch) {
+    return (
+      <div className="p-8">
+        <MatchRatingsView match={ratingsMatch} onBack={() => setRatingsMatch(null)} />
+      </div>
+    );
+  }
 
   return (
     <div className="p-8">
@@ -275,6 +495,14 @@ export default function Matches() {
                   </td>
                   <td className="px-4 py-3.5">
                     <div className="flex items-center justify-end gap-1">
+                      {m.finished && (
+                        <button onClick={() => setRatingsMatch(m)}
+                          className="p-1.5 rounded-md text-white/25 hover:text-yellow-400 hover:bg-yellow-400/10 transition-all cursor-pointer" title="Ocjene">
+                          <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                        </button>
+                      )}
                       <button onClick={() => openEdit(m)}
                         className="p-1.5 rounded-md text-white/25 hover:text-white hover:bg-white/[0.07] transition-all cursor-pointer" title="Uredi">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>

@@ -1,7 +1,10 @@
 package com.hnlrate.backend.service;
 
+import com.hnlrate.backend.dto.CommentAdminDTO;
+import com.hnlrate.backend.dto.RatingAdminDTO;
 import com.hnlrate.backend.model.MatchRating;
 import com.hnlrate.backend.repository.MatchRatingRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +27,18 @@ public class MatchRatingService {
 
     public MatchRating save(MatchRating matchRating) {
         return matchRatingRepository.save(matchRating);
+    }
+
+    public Optional<MatchRating> getById(Integer id) {
+        return matchRatingRepository.findById(id);
+    }
+
+    public List<RatingAdminDTO> getAllForAdmin() {
+        return matchRatingRepository.findAllAsDTO();
+    }
+
+    public List<CommentAdminDTO> getAllWithComments() {
+        return matchRatingRepository.findAllCommentsAsDTO();
     }
 
     public void delete(Integer id) {
