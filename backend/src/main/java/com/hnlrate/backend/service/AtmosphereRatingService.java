@@ -1,5 +1,6 @@
 package com.hnlrate.backend.service;
 
+import com.hnlrate.backend.dto.RatingAdminDTO;
 import com.hnlrate.backend.model.AtmosphereRating;
 import com.hnlrate.backend.repository.AtmosphereRatingRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,10 @@ import java.util.Optional;
 public class AtmosphereRatingService {
 
     private final AtmosphereRatingRepository atmosphereRatingRepository;
+
+    public List<RatingAdminDTO> getAllForAdmin() {
+        return atmosphereRatingRepository.findAllAsDTO();
+    }
 
     public List<AtmosphereRating> getByMatchId(Integer matchId) {
         return atmosphereRatingRepository.findByMatchId(matchId);

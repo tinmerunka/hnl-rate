@@ -4,6 +4,7 @@ import { getClubs } from '../../services/clubService';
 import { getMatches } from '../../services/matchService';
 import { getPlayers } from '../../services/playerService';
 import { getReferees } from '../../services/refereeService';
+import { getAdminStats } from '../../services/userAdminService';
 
 // ─── Count-up hook ───────────────────────────────────────────────────────────
 function useCountUp(target, duration = 900) {
@@ -100,10 +101,10 @@ export default function Dashboard() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [clubs, matches, players, referees] = await Promise.all([
-        getClubs(), getMatches(), getPlayers(), getReferees(),
+      const [clubs, matches, players, referees, adminStats] = await Promise.all([
+        getClubs(), getMatches(), getPlayers(), getReferees(), getAdminStats(),
       ]);
-      setData({ clubs, matches, players, referees });
+      setData({ clubs, matches, players, referees, activeSessions: adminStats.activeSessions });
     } catch (_) {
       setData(null);
     } finally {
@@ -173,6 +174,17 @@ export default function Dashboard() {
         </svg>
       ),
     },
+    {
+      label: 'Prijavljeni',
+      value: data?.activeSessions ?? 0,
+      accent: '#34d399',
+      subtext: 'Aktivne sesije',
+      icon: (
+        <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clipRule="evenodd"/>
+        </svg>
+      ),
+    },
   ];
 
   return (
@@ -196,7 +208,7 @@ export default function Dashboard() {
       </div>
 
       {/* ── Stat cards ─────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-5 gap-4 mb-8">
         {stats.map((s, i) => (
           <StatCard key={s.label} {...s} loading={loading} delay={i * 60} />
         ))}
