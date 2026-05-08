@@ -143,8 +143,8 @@ async function postRating(path: string, token: string, body: object): Promise<vo
   }
 }
 
-export async function rateMatch(matchId: number, rating: number, token: string): Promise<void> {
-  return postRating(`/api/matches/${matchId}/rate`, token, { rating });
+export async function rateMatch(matchId: number, rating: number, token: string, comment?: string): Promise<void> {
+  return postRating(`/api/matches/${matchId}/rate`, token, comment ? { rating, comment } : { rating });
 }
 
 export async function rateReferee(matchId: number, rating: number, token: string): Promise<void> {

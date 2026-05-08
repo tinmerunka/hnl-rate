@@ -91,6 +91,7 @@ public class MatchController {
         rating.setUser(user);
         rating.setRating(request.getRating());
         rating.setComment(request.getComment());
+        rating.setCreatedAt(java.time.LocalDateTime.now());
 
         matchRatingService.save(rating);
         return ResponseEntity.ok().build();
@@ -117,6 +118,7 @@ public class MatchController {
         rating.setUser(user);
         rating.setRating(request.getRating());
         rating.setComment(request.getComment());
+        rating.setCreatedAt(java.time.LocalDateTime.now());
 
         refereeRatingService.save(rating);
         return ResponseEntity.ok().build();
@@ -141,6 +143,7 @@ public class MatchController {
         rating.setUser(user);
         rating.setRating(request.getRating());
         rating.setComment(request.getComment());
+        rating.setCreatedAt(java.time.LocalDateTime.now());
 
         atmosphereRatingService.save(rating);
         return ResponseEntity.ok().build();
@@ -173,6 +176,7 @@ public class MatchController {
             rating.setComment(req.getComment());
             rating.setBestPlayer(Boolean.TRUE.equals(req.getBestPlayer()));
             rating.setWorstPlayer(Boolean.TRUE.equals(req.getWorstPlayer()));
+            rating.setCreatedAt(java.time.LocalDateTime.now());
 
             playerRatingService.save(rating);
         }
