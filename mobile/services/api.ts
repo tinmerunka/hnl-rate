@@ -123,7 +123,7 @@ export async function getUserRatings(token: string): Promise<UserMatchRating[]> 
 export async function getMatchRatings(matchId: number, token: string): Promise<MatchRatings> {
   const response = await authFetchRaw(`/api/matches/${matchId}/ratings`, token);
   if (response.status === 204) {
-    return { averageMatchRating: null, averageRefereeRating: null, averageAtmosphereRating: null, playerRatings: [] };
+    return { averageMatchRating: null, matchCount: 0, averageRefereeRating: null, refereeCount: 0, averageAtmosphereRating: null, atmosphereCount: 0, playerRatings: [], comments: [], userMatchRating: null };
   }
   if (!response.ok) {
     const text = await response.text();
