@@ -10,8 +10,9 @@ function RootNavigator() {
 
   useEffect(() => {
     if (loading) return;
-    const inProtectedArea = segments[0] === '(tabs)' || segments[0] === 'club' || segments[0] === 'match';
-    const onAuthScreen = segments.length === 0 || segments[0] === 'login' || segments[0] === 'register';
+    const first = segments[0] as string | undefined;
+    const inProtectedArea = first === '(tabs)' || first === 'club' || first === 'match';
+    const onAuthScreen = first === undefined || first === 'login' || first === 'register';
 
     if (!token && inProtectedArea) {
       router.replace('/');

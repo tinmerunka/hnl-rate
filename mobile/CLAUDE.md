@@ -37,32 +37,80 @@ Backend radi na lokalnoj mreži (definirano u `constants/config.ts`). **IP se mi
 
 ## Struktura projekta
 
+Sav UI je na **hrvatskom jeziku** (inline hardkodirani stringovi, bez i18n biblioteke).
+
 ```
 mobile/
-├── app/                    # Expo Router file-based routes
-│   ├── _layout.tsx         # Root layout — AuthProvider + Stack + RootNavigator (auth redirect)
-│   ├── index.tsx           # Welcome / Splash ekran (Get started / I already have an account)
-│   ├── login.tsx           # Login ekran ("Welcome back.")
-│   ├── register.tsx        # Registracija ekran ("Join the stands.")
-│   ├── club/
-│   │   └── [id].tsx        # Detalji kluba + kompaktne kartice utakmica
-│   ├── match/
-│   │   └── [id].tsx        # Detalji utakmice — score hero, Buzz/First XI/Stats tabovi, card-stack rating modal
+├── app/                              # Expo Router routes — tanke datoteke koje samo kompoziraju
+│   ├── _layout.tsx                   # AuthProvider + Stack + RootNavigator
+│   ├── index.tsx                     # Welcome / Splash
+│   ├── login.tsx                     # ~120 redaka, koristi <AuthHeader> + <FormField>
+│   ├── register.tsx                  # ~135 redaka, koristi <AuthHeader> + <FormField>
+│   ├── club/[id].tsx                 # ~120 redaka — kompozicija ClubHero + MatchFilterTabs + cards
+│   ├── match/[id].tsx                # ~50 redaka — route + Past/Upcoming layout
 │   └── (tabs)/
-│       ├── _layout.tsx     # Tab navigator (4 tabova: Matches, Clubs, Top Rated, Profile)
-│       ├── index.tsx       # Matches tab — feed utakmica po kolima, round selector pill
-│       ├── clubs.tsx       # Clubs tab — lista svih klubova, pretraga, toggle omiljenog
-│       ├── top-rated.tsx   # Top Rated tab — placeholder (coming soon)
-│       └── profile.tsx     # Profil korisnika, omiljeni klub, logout
-├── context/
-│   └── auth.tsx            # AuthContext — token, userProfile, loading, login, logout, refreshProfile
+│       ├── _layout.tsx               # Tab navigator (Utakmice, Klubovi, Najbolje, Profil)
+│       ├── index.tsx                 # ~180 redaka — kompozicija matches-feed komponenti
+│       ├── clubs.tsx                 # Clubs tab
+│       ├── top-rated.tsx             # Placeholder
+│       └── profile.tsx               # Profil korisnika
+│
+├── features/                         # Feature-scoped (ne dijeli se između feature-a)
+│   ├── match/
+│   │   ├── PastLayout.tsx            # Layout za odigrane utakmice (score hero + tabovi)
+│   │   ├── UpcomingLayout.tsx        # Layout za nadolazeće utakmice (vs + info card)
+│   │   ├── tabs/                     # TabBar, BuzzTab, FirstXITab, StatsTab
+│   │   ├── buzz/CommentCard.tsx
+│   │   ├── lineup/                   # PitchView, PlayerDot, BenchSection
+│   │   ├── stats/                    # StatRow, StatsContent
+│   │   ├── rating/                   # RateModal + 5 steps + RatingSlider, StarRow, SummaryTile
+│   │   ├── hooks/                    # useMatchData, useMatchExtras, useRateModal
+│   │   ├── utils/lineup.ts           # POS_SHORT, posToRow, computeFormation, computePositions
+│   │   └── styles/rateModal.styles.ts
+│   ├── club/
+│   │   ├── ClubHero.tsx              # Logo + ime + favorite toggle
+│   │   ├── MatchFilterTabs.tsx       # Nadolazeće / Prošle pill
+│   │   ├── FeaturedMatchCard.tsx     # Hero za sljedeću utakmicu
+│   │   ├── ClubMatchRow.tsx          # Kompaktni red s rezultatom + P/N/I badge
+│   │   ├── EmptyState.tsx
+│   │   ├── hooks/                    # useClubData, useFavoriteToggle
+│   │   └── styles/club.styles.ts
+│   ├── matches-feed/                 # Sve za (tabs)/index.tsx
+│   │   ├── MyClubFeed.tsx, RatedFeed.tsx, RatedMatchCard.tsx
+│   │   ├── SegmentedControl.tsx, RoundPill.tsx, SectionHeader.tsx
+│   │   ├── hooks/                    # useRoundMatches, useUserRatings
+│   │   └── styles.ts
+│   └── auth/
+│       ├── AuthHeader.tsx            # Logo + back + heading za login/register
+│       └── styles.ts
+│
+├── components/                       # Komponente dijeljene između ≥2 feature-a
+│   ├── ClubLogo.tsx                  # Korišten u match (Past + Upcoming layout)
+│   ├── ClubAvatar.tsx                # Korišten u matches-feed + (planski) profile
+│   ├── MatchCard.tsx                 # Korišten u matches-feed (live + finished + upcoming)
+│   ├── FormField.tsx                 # Label + TextInput + optional badge — login + register
+│   └── LogoMark.tsx                  # Chess-pattern logo — welcome + login + register
+│
+├── hooks/
+│   └── useClubLogoSource.ts          # Fallback crest → logoUrl
+│
+├── utils/
+│   ├── date.ts                       # dateStr, dateShort, dateLong, dateWeekday, timeShort (hr-HR)
+│   ├── score.ts                      # scoreColorFor
+│   └── initials.ts                   # clubInitials, userInitial
+│
+├── context/auth.tsx                  # AuthContext + svi TS tipovi
 ├── services/
-│   ├── api.ts              # Sve API funkcije (typed), 401 interceptor s auto-refreshom
-│   └── tokenStore.ts       # In-memory token store + forceLogout + notifyTokenRefreshed
+│   ├── api.ts                        # Sve API pozive + 401 interceptor + token refresh
+│   └── tokenStore.ts
 └── constants/
-    ├── config.ts           # API_BASE_URL
-    └── theme.ts            # Design tokens — T objekt (bg, surface, red, text, win, loss, draw...)
+    ├── config.ts                     # API_BASE_URL
+    └── theme.ts                      # T design tokens
 ```
+
+**Path alias:** `@/*` razrješuje iz `mobile/`. Uvijek koristi `@/features/...`, `@/components/...`, `@/utils/...` umjesto relativnih putanja.
+
+**Pravilo veličine:** route datoteke ostaju tanke (samo data fetch + kompozicija). Pojedinačne komponente uglavnom ispod ~200 redaka.
 
 ## Auth tok
 
@@ -80,17 +128,17 @@ mobile/
 
 | Ekran / Funkcionalnost        | Putanja                    | Opis |
 |-------------------------------|----------------------------|------|
-| Welcome / Splash              | `/`                        | Chess-pattern logo, red glow, "Get started" + "I already have an account" |
-| Login                         | `/login`                   | "Welcome back." — prijava korisnika, pohranjuje JWT |
-| Registracija                  | `/register`                | "Join the stands." — kreiranje novog računa |
+| Welcome / Splash              | `/`                        | Chess-pattern logo, red glow, "Započni" + "Već imam račun" |
+| Login                         | `/login`                   | "Dobrodošli natrag." — prijava korisnika, pohranjuje JWT |
+| Registracija                  | `/register`                | "Pridruži se tribinama." — kreiranje novog računa |
 | Matches (tab 1)               | `/(tabs)`                  | Feed utakmica po kolu, round selector pill, live strip, kartice s rezultatima |
 | Clubs (tab 2)                 | `/(tabs)/clubs`            | Lista svih klubova, pretraga po imenu, toggle omiljenog (srce) |
-| Top Rated (tab 3)             | `/(tabs)/top-rated`        | Placeholder — coming soon |
-| Profile (tab 4)               | `/(tabs)/profile`          | Profil korisnika, omiljeni klub, logout |
-| Detalji kluba                 | `/club/[id]`               | Kompaktni hero, toggle omiljenog, filter Upcoming/Past, istaknuta sljedeća utakmica |
-| Detalji utakmice (prošle)     | `/match/[id]`              | Score hero, "Rate this match" CTA, tabovi: Buzz / First XI / Stats |
+| Top Rated (tab 3)             | `/(tabs)/top-rated`        | Placeholder — "Uskoro" |
+| Profile (tab 4)               | `/(tabs)/profile`          | Profil korisnika, omiljeni klub, odjava |
+| Detalji kluba                 | `/club/[id]`               | Kompaktni hero, toggle omiljenog, filter Nadolazeće/Prošle, istaknuta sljedeća utakmica |
+| Detalji utakmice (prošle)     | `/match/[id]`              | Score hero, "Ocijeni utakmicu" CTA, tabovi: Komentari / Postava / Statistika |
 | Detalji utakmice (nadolazeće) | `/match/[id]`              | Kolo, datum, sudac, stadion — bez ocjenjivanja |
-| Ocjenjivanje utakmice         | `modal` unutar `/match/[id]` | Card-stack modal: ocjena 1–10, atmosfera/sudac ★, MOTM na terenu, review |
+| Ocjenjivanje utakmice         | `modal` unutar `/match/[id]` | Card-stack modal: ocjena 1–10, atmosfera/sudac ★, MVP na terenu, review |
 
 ## Implementirani API pozivi
 
@@ -104,6 +152,7 @@ mobile/
 | `removeFavoriteClub`   | DELETE | `/api/clubs/favorite`          | Ukloni omiljeni klub |
 | `getMatch`             | GET    | `/api/matches/{id}`            | Detalji utakmice (sa sucem) |
 | `getMatchLineup`       | GET    | `/api/matches/{id}/lineup`     | Postava utakmice (vraća null ako nije dostupna — 204) |
+| `getMatchStatistics`   | GET    | `/api/matches/{id}/statistics` | Statistike utakmice (shots, cards, possession…); 204 za nedovršene utakmice; cachira se u DB |
 | `getMatchRatings`      | GET    | `/api/matches/{id}/ratings`    | Community ocjene utakmice (vraća 204 ako nema) |
 | `getMatchesByRound`    | GET    | `/api/matches?round={n}`       | Sve utakmice za određeno kolo — koristi Matches tab |
 | `getPlayersByClub`     | GET    | `/api/players?clubId={id}`     | Igrači kluba |
@@ -147,11 +196,12 @@ Definirano u `constants/theme.ts` kao `T` objekt:
 
 ## Napomene
 
-- Sve poruke prema korisniku su na **engleskom** (za sada)
+- Sav UI je na **hrvatskom** — koristi inline hardkodirane stringove, bez i18n biblioteke. Datumi koriste `hr-HR` locale (preko utility funkcija u `utils/date.ts`).
 - Design tokens u `T` objektu (`constants/theme.ts`) — **ne koristiti hardkodirane boje**
 - `getMatchesByRound` poziva `/api/matches?round={n}` — ako backend ne podržava ovaj endpoint, Matches tab će prikazati error state
 - Backend vraća `accessToken` (ili `token` kao fallback) pri loginu
 - Nema state managementa (Redux/Zustand) — React Context
 - Nema axios — native `fetch`
 - `router.replace('/')` iz tab screena navigira na root welcome ekran (ne unutar taba)
-- Rating modal u match detailima je `Modal` komponenta (presentationStyle: `pageSheet`) — otvara se pritiskom na "Rate this match" CTA
+- Rating modal u match detailima je `Modal` komponenta (presentationStyle: `pageSheet`) — otvara se pritiskom na "Ocijeni utakmicu" CTA
+- Velike datoteke su rastavljene u `features/<area>/` i `components/`. Route datoteke u `app/` su tanke i samo kompoziraju.

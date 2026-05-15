@@ -94,7 +94,7 @@ export default function ClubsScreen() {
       const data = await getClubs(token);
       setClubs(data);
     } catch (e: any) {
-      Alert.alert('Error', e.message ?? 'Failed to load clubs.');
+      Alert.alert('Greška', e.message ?? 'Učitavanje klubova nije uspjelo.');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -117,7 +117,7 @@ export default function ClubsScreen() {
         : await setFavoriteClub(club.id, token);
       updateProfile(updated);
     } catch (e: any) {
-      Alert.alert('Error', e.message ?? 'Failed to update favorite.');
+      Alert.alert('Greška', e.message ?? 'Ažuriranje omiljenog kluba nije uspjelo.');
     } finally {
       setTogglingId(null);
     }
@@ -127,8 +127,8 @@ export default function ClubsScreen() {
     <View style={[s.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={s.header}>
-        <Text style={s.title}>Clubs</Text>
-        {clubs.length > 0 && <Text style={s.count}>{clubs.length} clubs</Text>}
+        <Text style={s.title}>Klubovi</Text>
+        {clubs.length > 0 && <Text style={s.count}>{clubs.length} klubova</Text>}
       </View>
 
       {/* Search */}
@@ -138,7 +138,7 @@ export default function ClubsScreen() {
           style={s.searchInput}
           value={search}
           onChangeText={setSearch}
-          placeholder="Search clubs..."
+          placeholder="Pretraži klubove..."
           placeholderTextColor={T.textFaint}
           autoCorrect={false}
         />
@@ -176,7 +176,7 @@ export default function ClubsScreen() {
             <View style={s.centered}>
               <Ionicons name="shield-outline" size={40} color={T.textFaint} />
               <Text style={s.emptyText}>
-                {search ? 'No clubs match your search.' : 'No clubs found.'}
+                {search ? 'Nema klubova koji odgovaraju pretrazi.' : 'Nema klubova.'}
               </Text>
             </View>
           }

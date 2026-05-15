@@ -1,5 +1,5 @@
 import API_BASE_URL from "@/constants/config";
-import { Club, Match, MatchLineup, MatchRatings, Player, PlayerRatingInput, UserMatchRating, UserProfile } from "@/context/auth";
+import { Club, Match, MatchLineup, MatchRatings, MatchStatistics, Player, PlayerRatingInput, UserMatchRating, UserProfile, VoteResult } from "@/context/auth";
 import { tokenStore } from "@/services/tokenStore";
 import * as SecureStore from "expo-secure-store";
 
@@ -47,7 +47,7 @@ async function authFetchRaw(path: string, token: string, options?: RequestInit):
       return fetch(`${API_BASE_URL}${path}`, buildRequest(newAccessToken, options));
     } catch {
       tokenStore.forceLogout();
-      throw new Error("Session expired. Please log in again.");
+      throw new Error("Sesija je istekla. Prijavi se ponovno.");
     }
   }
 
@@ -168,6 +168,39 @@ export async function ratePlayers(matchId: number, ratings: PlayerRatingInput[],
 
 export async function getMatchesByRound(round: number, token: string): Promise<Match[]> {
   return authFetch(`/api/matches?round=${round}`, token);
+}
+
+export async function voteOnComment(
+  matchId: number,
+  ratingId: number,
+  voteType: "UP" | "DOWN",
+  token: string,
+): Promise<VoteResult> {
+  const res = await authFetchRaw(
+    `/api/matches/${matchId}/ratings/${ratingId}/vote`,
+    token,
+    { method: "POST", body: JSON.stringify({ voteType }) },
+  );
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `Request failed: ${res.status}`);
+  }
+  const data = await res.json();
+  return { ...data, userVote: data.userVote || null };
+}
+
+// Returns null when the backend responds with 204 (match not finished or stats unavailable)
+export async function getMatchStatistics(
+  matchId: number,
+  token: string,
+): Promise<MatchStatistics | null> {
+  const response = await authFetchRaw(`/api/matches/${matchId}/statistics`, token);
+  if (response.status === 204) return null;
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || `Request failed: ${response.status}`);
+  }
+  return response.json();
 }
 
 // Returns null when the backend responds with 204 (lineup not yet available)

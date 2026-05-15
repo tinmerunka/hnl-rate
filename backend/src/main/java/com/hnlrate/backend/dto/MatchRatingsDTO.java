@@ -33,9 +33,13 @@ public class MatchRatingsDTO {
     @Getter
     @AllArgsConstructor
     public static class MatchComment {
+        private Integer ratingId;
         private String username;
         private Integer rating;
         private String comment;
         private String createdAt;
+        private long upvotes;
+        private long downvotes;
+        private String userVote; // "UP", "DOWN", or null
     }
 }

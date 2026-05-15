@@ -14,7 +14,11 @@
       "Bash(findstr :8081)",
       "Bash(tasklist /fi \"PID eq 3020\")",
       "PowerShell(Get-Process -Id 3020)",
-      "PowerShell(Stop-Process -Id 3020 -Force)"
+      "PowerShell(Stop-Process -Id 3020 -Force)",
+      "Read(//c/Users/meri4/Desktop/OICAR/hnl-rate/backend/src/main/java/com/hnlrate/backend/dto/**)",
+      "Read(//c/Users/meri4/Desktop/OICAR/hnl-rate/backend/src/main/java/com/hnlrate/backend/dto/external/**)",
+      "Read(//c/Users/meri4/Desktop/OICAR/hnl-rate/backend/src/main/java/com/hnlrate/backend/model/**)",
+      "Read(//c/Users/meri4/Desktop/OICAR/hnl-rate/backend/src/main/java/com/hnlrate/backend/client/**)"
     ]
   }
 }
