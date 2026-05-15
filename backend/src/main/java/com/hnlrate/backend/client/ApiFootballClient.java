@@ -63,6 +63,15 @@ public class ApiFootballClient {
         return response != null && response.getResponse() != null ? response.getResponse() : List.of();
     }
 
+    public List<StatisticsResponseItem> getFixtureStatistics(int fixtureId) {
+        ApiResponse<StatisticsResponseItem> response = restClient.get()
+                .uri("/fixtures/statistics?fixture={fixture}", fixtureId)
+                .retrieve()
+                .body(new ParameterizedTypeReference<>() {});
+
+        return response != null && response.getResponse() != null ? response.getResponse() : List.of();
+    }
+
     public List<PlayerResponseItem> getPlayers() {
         List<PlayerResponseItem> all = new ArrayList<>();
         int page = 1;

@@ -106,11 +106,21 @@ export interface PlayerRatingResult {
 }
 
 export interface MatchComment {
+  ratingId: number;
   username: string;
   rating: number;
   comment: string;
   createdAt: string;
+  upvotes: number;
+  downvotes: number;
+  userVote: "UP" | "DOWN" | null;
 }
+
+export type VoteResult = {
+  upvotes: number;
+  downvotes: number;
+  userVote: "UP" | "DOWN" | null;
+};
 
 export interface MatchRatings {
   averageMatchRating: number | null;
@@ -122,6 +132,29 @@ export interface MatchRatings {
   playerRatings: PlayerRatingResult[];
   comments: MatchComment[];
   userMatchRating: number | null;
+}
+
+export type StatPair = { home: number | null; away: number | null };
+
+export interface MatchStatistics {
+  homeTeam: { name: string; logoUrl: string | null };
+  awayTeam: { name: string; logoUrl: string | null };
+  shotsOnGoal: StatPair;
+  shotsOffGoal: StatPair;
+  totalShots: StatPair;
+  blockedShots: StatPair;
+  shotsInsidebox: StatPair;
+  shotsOutsidebox: StatPair;
+  fouls: StatPair;
+  cornerKicks: StatPair;
+  offsides: StatPair;
+  ballPossession: StatPair;
+  yellowCards: StatPair;
+  redCards: StatPair;
+  goalkeeperSaves: StatPair;
+  totalPasses: StatPair;
+  passesAccurate: StatPair;
+  passesPercent: StatPair;
 }
 
 interface AuthContextType {

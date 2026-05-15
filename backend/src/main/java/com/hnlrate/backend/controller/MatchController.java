@@ -3,6 +3,8 @@ package com.hnlrate.backend.controller;
 import com.hnlrate.backend.dto.*;
 import com.hnlrate.backend.model.*;
 import com.hnlrate.backend.repository.MatchPlayerRepository;
+import com.hnlrate.backend.repository.MatchRatingVoteRepository;
+import com.hnlrate.backend.repository.MatchStatisticsRepository;
 import com.hnlrate.backend.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -10,8 +12,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -21,6 +25,8 @@ public class MatchController {
 
     private final MatchService matchService;
     private final MatchPlayerRepository matchPlayerRepository;
+    private final MatchStatisticsRepository matchStatisticsRepository;
+    private final MatchRatingVoteRepository matchRatingVoteRepository;
     private final SyncService syncService;
     private final UserService userService;
     private final PlayerService playerService;
@@ -71,6 +77,23 @@ public class MatchController {
         if (players.isEmpty()) return ResponseEntity.noContent().build();
 
         return ResponseEntity.ok(new MatchLineupDTO(match.getHomeClub(), match.getAwayClub(), players));
+    }
+
+    @GetMapping("/{id}/statistics")
+    public ResponseEntity<MatchStatisticsDTO> getStatistics(@PathVariable Integer id) {
+        Match match = matchService.getById(id).orElse(null);
+        if (match == null) return ResponseEntity.notFound().build();
+
+        if (!matchStatisticsRepository.existsByMatch(match)) {
+            if (!Boolean.TRUE.equals(match.getFinished())) {
+                return ResponseEntity.noContent().build();
+            }
+            syncService.syncMatchStatistics(match);
+        }
+
+        return matchStatisticsRepository.findByMatch(match)
+                .map(stats -> ResponseEntity.ok(new MatchStatisticsDTO(match, stats)))
+                .orElse(ResponseEntity.noContent().build());
     }
 
     @PostMapping("/{id}/rate")
@@ -213,25 +236,49 @@ public class MatchController {
                 })
                 .toList();
 
-        List<MatchRatingsDTO.MatchComment> comments = matchRatings.stream()
+        User currentUser = auth != null ? userService.getByUsername(auth.getName()).orElse(null) : null;
+
+        List<MatchRating> commentRatings = matchRatings.stream()
                 .filter(r -> r.getComment() != null && !r.getComment().isBlank())
                 .sorted(Comparator.comparing(MatchRating::getCreatedAt).reversed())
+                .toList();
+
+        Map<Integer, Long> upMap = new HashMap<>();
+        Map<Integer, Long> downMap = new HashMap<>();
+        Map<Integer, String> userVoteMap = new HashMap<>();
+
+        if (!commentRatings.isEmpty()) {
+            List<MatchRatingVote> allVotes = matchRatingVoteRepository.findByMatchRatingIn(commentRatings);
+            allVotes.stream().filter(v -> v.getVoteType() == VoteType.UP)
+                    .collect(Collectors.groupingBy(v -> v.getMatchRating().getId(), Collectors.counting()))
+                    .forEach(upMap::put);
+            allVotes.stream().filter(v -> v.getVoteType() == VoteType.DOWN)
+                    .collect(Collectors.groupingBy(v -> v.getMatchRating().getId(), Collectors.counting()))
+                    .forEach(downMap::put);
+            if (currentUser != null) {
+                matchRatingVoteRepository.findByMatchRatingInAndUser(commentRatings, currentUser)
+                        .forEach(v -> userVoteMap.put(v.getMatchRating().getId(), v.getVoteType().name()));
+            }
+        }
+
+        List<MatchRatingsDTO.MatchComment> comments = commentRatings.stream()
                 .map(r -> new MatchRatingsDTO.MatchComment(
+                        r.getId(),
                         r.getUser().getUsername(),
                         r.getRating(),
                         r.getComment(),
-                        r.getCreatedAt().toString()
+                        r.getCreatedAt().toString(),
+                        upMap.getOrDefault(r.getId(), 0L),
+                        downMap.getOrDefault(r.getId(), 0L),
+                        userVoteMap.getOrDefault(r.getId(), null)
                 ))
                 .toList();
 
         Integer userMatchRating = null;
-        if (auth != null) {
-            User user = userService.getByUsername(auth.getName()).orElse(null);
-            if (user != null) {
-                userMatchRating = matchRatingService.getByMatchAndUser(id, user.getId())
-                        .map(MatchRating::getRating)
-                        .orElse(null);
-            }
+        if (currentUser != null) {
+            userMatchRating = matchRatingService.getByMatchAndUser(id, currentUser.getId())
+                    .map(MatchRating::getRating)
+                    .orElse(null);
         }
 
         return ResponseEntity.ok(new MatchRatingsDTO(
@@ -241,6 +288,52 @@ public class MatchController {
                 playerAvgs,
                 comments,
                 userMatchRating
+        ));
+    }
+
+    @PostMapping("/{matchId}/ratings/{ratingId}/vote")
+    public ResponseEntity<?> voteComment(@PathVariable Integer matchId,
+                                          @PathVariable Integer ratingId,
+                                          @RequestBody VoteRequestDTO request,
+                                          Authentication auth) {
+        User user = userService.getByUsername(auth.getName()).orElse(null);
+        if (user == null) return ResponseEntity.status(401).build();
+
+        MatchRating matchRating = matchRatingService.getById(ratingId).orElse(null);
+        if (matchRating == null || !matchRating.getMatch().getId().equals(matchId))
+            return ResponseEntity.notFound().build();
+
+        if (matchRating.getComment() == null || matchRating.getComment().isBlank())
+            return ResponseEntity.badRequest().body("Ovaj komentar ne postoji");
+
+        Optional<MatchRatingVote> existing = matchRatingVoteRepository
+                .findByMatchRatingAndUser(matchRating, user);
+
+        if (existing.isPresent()) {
+            if (existing.get().getVoteType() == request.getVoteType()) {
+                matchRatingVoteRepository.delete(existing.get());
+            } else {
+                existing.get().setVoteType(request.getVoteType());
+                matchRatingVoteRepository.save(existing.get());
+            }
+        } else {
+            MatchRatingVote vote = new MatchRatingVote();
+            vote.setMatchRating(matchRating);
+            vote.setUser(user);
+            vote.setVoteType(request.getVoteType());
+            matchRatingVoteRepository.save(vote);
+        }
+
+        List<MatchRatingVote> votes = matchRatingVoteRepository.findByMatchRatingIn(List.of(matchRating));
+        long upvotes = votes.stream().filter(v -> v.getVoteType() == VoteType.UP).count();
+        long downvotes = votes.stream().filter(v -> v.getVoteType() == VoteType.DOWN).count();
+        String userVote = matchRatingVoteRepository.findByMatchRatingAndUser(matchRating, user)
+                .map(v -> v.getVoteType().name()).orElse(null);
+
+        return ResponseEntity.ok(Map.of(
+                "upvotes", upvotes,
+                "downvotes", downvotes,
+                "userVote", userVote != null ? userVote : ""
         ));
     }
 }

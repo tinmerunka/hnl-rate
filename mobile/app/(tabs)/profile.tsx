@@ -62,7 +62,7 @@ export default function ProfileScreen() {
       contentContainerStyle={[s.content, { paddingTop: insets.top + 16 }]}
       showsVerticalScrollIndicator={false}>
 
-      <Text style={s.pageTitle}>Profile</Text>
+      <Text style={s.pageTitle}>Profil</Text>
 
       {/* Avatar section */}
       <View style={s.avatarSection}>
@@ -73,7 +73,7 @@ export default function ProfileScreen() {
 
       {/* Favorite club */}
       <View style={s.section}>
-        <Text style={s.sectionLabel}>FAVOURITE CLUB</Text>
+        <Text style={s.sectionLabel}>OMILJENI KLUB</Text>
         {fav ? (
           <TouchableOpacity
             style={s.favCard}
@@ -100,19 +100,19 @@ export default function ProfileScreen() {
             onPress={() => router.push('/(tabs)/clubs' as any)}
             activeOpacity={0.75}>
             <Ionicons name="heart-outline" size={22} color={T.textFaint} />
-            <Text style={s.noFavText}>No favourite club yet</Text>
-            <Text style={s.noFavHint}>Browse clubs to set one →</Text>
+            <Text style={s.noFavText}>Još nemaš omiljeni klub</Text>
+            <Text style={s.noFavHint}>Pregledaj klubove da odabereš →</Text>
           </TouchableOpacity>
         )}
       </View>
 
       {/* Account info */}
       <View style={s.section}>
-        <Text style={s.sectionLabel}>ACCOUNT</Text>
+        <Text style={s.sectionLabel}>RAČUN</Text>
         <View style={s.infoCard}>
-          <InfoRow icon="person-outline" label="Username" value={userProfile.username} />
+          <InfoRow icon="person-outline" label="Korisničko ime" value={userProfile.username} />
           <View style={s.divider} />
-          <InfoRow icon="mail-outline" label="Email" value={userProfile.email} />
+          <InfoRow icon="mail-outline" label="E-mail" value={userProfile.email} />
         </View>
       </View>
 
@@ -122,7 +122,7 @@ export default function ProfileScreen() {
         onPress={() => { router.replace('/'); logout(); }}
         activeOpacity={0.8}>
         <Ionicons name="log-out-outline" size={18} color={T.red} />
-        <Text style={s.logoutText}>Log out</Text>
+        <Text style={s.logoutText}>Odjava</Text>
       </TouchableOpacity>
     </ScrollView>
   );

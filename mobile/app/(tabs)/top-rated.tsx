@@ -9,16 +9,16 @@ export default function TopRatedScreen() {
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
       <View style={s.header}>
-        <Text style={s.title}>Top Rated</Text>
+        <Text style={s.title}>Najbolje ocijenjeno</Text>
       </View>
 
       <View style={s.center}>
         <View style={s.iconWrap}>
           <Ionicons name="trophy-outline" size={40} color={T.textFaint} />
         </View>
-        <Text style={s.comingSoon}>Coming soon</Text>
+        <Text style={s.comingSoon}>Uskoro</Text>
         <Text style={s.sub}>
-          The highest-rated matches and players from{'\n'}every round — ranked by the community.
+          Najbolje ocijenjene utakmice i igrači iz{'\n'}svakog kola — po izboru zajednice.
         </Text>
       </View>
     </View>

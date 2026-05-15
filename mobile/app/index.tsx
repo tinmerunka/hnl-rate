@@ -1,49 +1,13 @@
+import { LogoMark } from '@/components/LogoMark';
 import { T } from '@/constants/theme';
 import { useRouter } from 'expo-router';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
-function LogoMark({ size = 96 }: { size?: number }) {
-  const sq = size / 7;
-  const cells: React.ReactNode[] = [];
-  for (let i = 0; i < 7; i++) {
-    for (let j = 0; j < 7; j++) {
-      if ((i + j) % 2 === 0) {
-        cells.push(
-          <View
-            key={`${i}-${j}`}
-            style={{
-              position: 'absolute',
-              left: i * sq,
-              top: j * sq,
-              width: sq,
-              height: sq,
-              backgroundColor: '#fff',
-            }}
-          />
-        );
-      }
-    }
-  }
-  return (
-    <View
-      style={{
-        width: size,
-        height: size,
-        borderRadius: size * 0.25,
-        backgroundColor: T.red,
-        overflow: 'hidden',
-      }}>
-      {cells}
-    </View>
-  );
-}
 
 export default function WelcomeScreen() {
   const router = useRouter();
 
   return (
     <View style={s.container}>
-      {/* Glow orb */}
       <View style={s.glowOuter} />
       <View style={s.glowInner} />
 
@@ -52,35 +16,36 @@ export default function WelcomeScreen() {
           <LogoMark size={96} />
         </View>
         <Text style={s.title}>HNL Rate</Text>
-        <Text style={s.tagline}>The community scoreboard{'\n'}for SuperSport HNL.</Text>
+        <Text style={s.tagline}>
+          Bodovna lista zajednice{'\n'}za SuperSport HNL.
+        </Text>
       </View>
 
       <View style={s.btns}>
         <TouchableOpacity
           style={s.btnPrimary}
           onPress={() => router.push('/register' as any)}
-          activeOpacity={0.85}>
-          <Text style={s.btnPrimaryText}>Get started</Text>
+          activeOpacity={0.85}
+        >
+          <Text style={s.btnPrimaryText}>Započni</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={s.btnSecondary}
           onPress={() => router.push('/login')}
-          activeOpacity={0.8}>
-          <Text style={s.btnSecondaryText}>I already have an account</Text>
+          activeOpacity={0.8}
+        >
+          <Text style={s.btnSecondaryText}>Već imam račun</Text>
         </TouchableOpacity>
 
-        <Text style={s.season}>SEASON 2025 / 26  ·  SUPERHNL</Text>
+        <Text style={s.season}>SEZONA 2025 / 26  ·  SUPERHNL</Text>
       </View>
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: T.bg,
-  },
+  container: { flex: 1, backgroundColor: T.bg },
   glowOuter: {
     position: 'absolute',
     top: -120,

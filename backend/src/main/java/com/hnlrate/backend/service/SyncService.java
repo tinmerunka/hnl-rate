@@ -5,11 +5,13 @@ import com.hnlrate.backend.dto.external.*;
 import com.hnlrate.backend.model.Club;
 import com.hnlrate.backend.model.Match;
 import com.hnlrate.backend.model.MatchPlayer;
+import com.hnlrate.backend.model.MatchStatistics;
 import com.hnlrate.backend.model.Player;
 import com.hnlrate.backend.model.Referee;
 import com.hnlrate.backend.repository.ClubRepository;
 import com.hnlrate.backend.repository.MatchPlayerRepository;
 import com.hnlrate.backend.repository.MatchRepository;
+import com.hnlrate.backend.repository.MatchStatisticsRepository;
 import com.hnlrate.backend.repository.PlayerRepository;
 import com.hnlrate.backend.repository.RefereeRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +33,7 @@ public class SyncService {
     private final ClubRepository clubRepository;
     private final MatchRepository matchRepository;
     private final MatchPlayerRepository matchPlayerRepository;
+    private final MatchStatisticsRepository matchStatisticsRepository;
     private final PlayerRepository playerRepository;
     private final RefereeRepository refereeRepository;
 
@@ -196,6 +199,77 @@ public class SyncService {
                 matchPlayerRepository.save(mp);
             });
         }
+    }
+
+    public void syncMatchStatistics(Match match) {
+        if (match.getApiFootballId() == null) return;
+
+        List<StatisticsResponseItem> items =
+                apiFootballClient.getFixtureStatistics(match.getApiFootballId());
+        if (items.size() < 2) return;
+
+        Integer homeApiId = match.getHomeClub().getApiFootballId();
+        StatisticsResponseItem homeItem = null;
+        StatisticsResponseItem awayItem = null;
+
+        for (StatisticsResponseItem item : items) {
+            if (item.getTeam() != null && homeApiId != null && homeApiId.equals(item.getTeam().getId())) {
+                homeItem = item;
+            } else {
+                awayItem = item;
+            }
+        }
+
+        if (homeItem == null || awayItem == null) return;
+
+        MatchStatistics stats = matchStatisticsRepository.findByMatch(match)
+                .orElse(new MatchStatistics());
+        stats.setMatch(match);
+
+        applyTeamStats(stats, homeItem.getStatistics(), true);
+        applyTeamStats(stats, awayItem.getStatistics(), false);
+
+        matchStatisticsRepository.save(stats);
+    }
+
+    private void applyTeamStats(MatchStatistics stats,
+                                 List<StatisticsResponseItem.StatEntry> entries,
+                                 boolean home) {
+        if (entries == null) return;
+        for (StatisticsResponseItem.StatEntry entry : entries) {
+            if (entry.getType() == null) continue;
+            Integer val = parseStatValue(entry.getValue());
+            switch (entry.getType()) {
+                case "Shots on Goal"    -> { if (home) stats.setHomeShotsOnGoal(val);     else stats.setAwayShotsOnGoal(val); }
+                case "Shots off Goal"   -> { if (home) stats.setHomeShotsOffGoal(val);    else stats.setAwayShotsOffGoal(val); }
+                case "Total Shots"      -> { if (home) stats.setHomeTotalShots(val);       else stats.setAwayTotalShots(val); }
+                case "Blocked Shots"    -> { if (home) stats.setHomeBlockedShots(val);     else stats.setAwayBlockedShots(val); }
+                case "Shots insidebox"  -> { if (home) stats.setHomeShotsInsidebox(val);   else stats.setAwayShotsInsidebox(val); }
+                case "Shots outsidebox" -> { if (home) stats.setHomeShotsOutsidebox(val);  else stats.setAwayShotsOutsidebox(val); }
+                case "Fouls"            -> { if (home) stats.setHomeFouls(val);             else stats.setAwayFouls(val); }
+                case "Corner Kicks"     -> { if (home) stats.setHomeCornerKicks(val);      else stats.setAwayCornerKicks(val); }
+                case "Offsides"         -> { if (home) stats.setHomeOffsides(val);          else stats.setAwayOffsides(val); }
+                case "Ball Possession"  -> { if (home) stats.setHomeBallPossession(val);   else stats.setAwayBallPossession(val); }
+                case "Yellow Cards"     -> { if (home) stats.setHomeYellowCards(val);      else stats.setAwayYellowCards(val); }
+                case "Red Cards"        -> { if (home) stats.setHomeRedCards(val);          else stats.setAwayRedCards(val); }
+                case "Goalkeeper Saves" -> { if (home) stats.setHomeGoalkeeperSaves(val);  else stats.setAwayGoalkeeperSaves(val); }
+                case "Total passes"     -> { if (home) stats.setHomeTotalPasses(val);      else stats.setAwayTotalPasses(val); }
+                case "Passes accurate"  -> { if (home) stats.setHomePassesAccurate(val);   else stats.setAwayPassesAccurate(val); }
+                case "Passes %"         -> { if (home) stats.setHomePassesPercent(val);    else stats.setAwayPassesPercent(val); }
+                default -> {}
+            }
+        }
+    }
+
+    private Integer parseStatValue(Object raw) {
+        if (raw == null) return null;
+        if (raw instanceof Integer i) return i;
+        if (raw instanceof Long l) return l.intValue();
+        if (raw instanceof String s) {
+            String cleaned = s.replace("%", "").trim();
+            try { return Integer.parseInt(cleaned); } catch (NumberFormatException e) { return null; }
+        }
+        return null;
     }
 
     private Club resolvePlayerClub(PlayerResponseItem item) {
