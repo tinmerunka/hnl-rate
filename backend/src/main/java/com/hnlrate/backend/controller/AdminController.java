@@ -3,6 +3,7 @@ package com.hnlrate.backend.controller;
 import com.hnlrate.backend.dto.ClubDTO;
 import com.hnlrate.backend.dto.CommentAdminDTO;
 import com.hnlrate.backend.dto.MatchDTO;
+import com.hnlrate.backend.dto.PlayerRatingAdminDTO;
 import com.hnlrate.backend.dto.RatingAdminDTO;
 import com.hnlrate.backend.dto.PlayerDTO;
 import com.hnlrate.backend.dto.RefereeDTO;
@@ -17,6 +18,7 @@ import com.hnlrate.backend.model.MatchRating;
 import com.hnlrate.backend.model.Player;
 import com.hnlrate.backend.model.Referee;
 import com.hnlrate.backend.model.User;
+import com.hnlrate.backend.model.Match;
 import com.hnlrate.backend.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -33,12 +35,14 @@ public class AdminController {
     private final SyncService syncService;
     private final ClubService clubService;
     private final MatchService matchService;
+    private final NotificationService notificationService;
     private final PlayerService playerService;
     private final RefereeService refereeService;
     private final UserService userService;
     private final MatchRatingService matchRatingService;
     private final RefereeRatingService refereeRatingService;
     private final AtmosphereRatingService atmosphereRatingService;
+    private final PlayerRatingService playerRatingService;
     private final RefreshTokenService refreshTokenService;
 
     // ── Sync ────────────────────────────────────────────────────────────────
@@ -129,9 +133,16 @@ public class AdminController {
         if (req.getRound() != null) match.setRound(req.getRound());
         if (req.getDate() != null) match.setDate(req.getDate());
         if (req.getResult() != null) match.setResult(req.getResult());
+        boolean wasFinished = Boolean.TRUE.equals(match.getFinished());
         if (req.getFinished() != null) match.setFinished(req.getFinished());
 
-        return ResponseEntity.ok(new MatchDTO(matchService.save(match)));
+        Match saved = matchService.save(match);
+
+        if (!wasFinished && Boolean.TRUE.equals(saved.getFinished())) {
+            notificationService.sendMatchFinishedNotification(saved);
+        }
+
+        return ResponseEntity.ok(new MatchDTO(saved));
     }
 
     @DeleteMapping("/matches/{id}")
@@ -267,7 +278,20 @@ public class AdminController {
         return ResponseEntity.noContent().build();
     }
 
-@DeleteMapping("/ratings/{id}")
+    @GetMapping("/player-ratings")
+    public ResponseEntity<List<PlayerRatingAdminDTO>> getAllPlayerRatings() {
+        return ResponseEntity.ok(playerRatingService.getAllForAdmin());
+    }
+
+    @DeleteMapping("/player-ratings/{id}")
+    public ResponseEntity<Void> deletePlayerRating(@PathVariable Integer id) {
+        playerRatingService.getById(id)
+                .orElseThrow(() -> new RuntimeException("Ocjena igrača nije pronađena"));
+        playerRatingService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/ratings/{id}")
     public ResponseEntity<Void> deleteRating(@PathVariable Integer id) {
         matchRatingService.getById(id)
                 .orElseThrow(() -> new RuntimeException("Ocjena nije pronađena"));
@@ -279,6 +303,12 @@ public class AdminController {
 
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getStats() {
-        return ResponseEntity.ok(Map.of("activeSessions", refreshTokenService.countActiveSessions()));
+        long totalRatings = matchRatingService.count() + refereeRatingService.count()
+                + atmosphereRatingService.count() + playerRatingService.count();
+        return ResponseEntity.ok(Map.of(
+                "activeSessions", refreshTokenService.countActiveSessions(),
+                "totalUsers", userService.count(),
+                "totalRatings", totalRatings
+        ));
     }
 }

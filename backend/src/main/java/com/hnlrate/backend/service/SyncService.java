@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -279,14 +280,35 @@ public class SyncService {
         return clubRepository.findByApiFootballId(team.getId()).orElse(null);
     }
 
-    // Parses "Ante Vucemilovic (Croatia)" → upserts Referee by firstName+lastName
+    // Parses "Ante Čulina (Croatia)" or "Ante Čulina, Croatia" → upserts Referee by firstName+lastName
     private Referee parseReferee(String refereeString) {
         if (refereeString == null || refereeString.isBlank()) return null;
 
-        // strip country "(Country)"
-        String name = refereeString.contains("(")
-                ? refereeString.substring(0, refereeString.lastIndexOf('(')).trim()
-                : refereeString.trim();
+        String name = refereeString.trim();
+
+        // Strip "(Country)" format
+        if (name.contains("(")) {
+            name = name.substring(0, name.lastIndexOf('(')).trim();
+        }
+
+        // Strip ", Country" format — if last token after comma has no spaces (single word = country)
+        int commaIdx = name.lastIndexOf(',');
+        if (commaIdx > 0) {
+            String afterComma = name.substring(commaIdx + 1).trim();
+            if (!afterComma.isBlank() && !afterComma.contains(" ")) {
+                name = name.substring(0, commaIdx).trim();
+            }
+        }
+
+        // Strip any remaining trailing comma
+        if (name.endsWith(",")) {
+            name = name.substring(0, name.length() - 1).trim();
+        }
+
+        // Skip abbreviated names like "A. Čulina" or "Čulina A." — abbreviation = single letter + dot
+        boolean hasAbbreviation = name.matches(".*\\b[A-ZČĆŽŠĐ]\\..*(\\s+.*)?") ||
+                                  name.matches(".*\\s[A-ZČĆŽŠĐ]\\.$");
+        if (hasAbbreviation) return null;
 
         int lastSpace = name.lastIndexOf(' ');
         if (lastSpace < 0) return null;
@@ -294,13 +316,27 @@ public class SyncService {
         String firstName = name.substring(0, lastSpace).trim();
         String lastName = name.substring(lastSpace + 1).trim();
 
-        return refereeRepository.findByFirstNameAndLastName(firstName, lastName)
+        if (firstName.isBlank() || lastName.isBlank()) return null;
+
+        String normFirst = normalizeForLookup(firstName);
+        String normLast = normalizeForLookup(lastName);
+
+        return refereeRepository.findAll().stream()
+                .filter(r -> normalizeForLookup(r.getFirstName()).equals(normFirst)
+                          && normalizeForLookup(r.getLastName()).equals(normLast))
+                .findFirst()
                 .orElseGet(() -> {
                     Referee r = new Referee();
                     r.setFirstName(firstName);
                     r.setLastName(lastName);
                     return refereeRepository.save(r);
                 });
+    }
+
+    private static String normalizeForLookup(String s) {
+        if (s == null) return "";
+        String nfd = Normalizer.normalize(s.trim(), Normalizer.Form.NFD);
+        return nfd.replaceAll("\\p{M}", "").toLowerCase();
     }
 
     private LocalDate parseDate(String isoDate) {

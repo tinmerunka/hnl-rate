@@ -1,5 +1,6 @@
 package com.hnlrate.backend.service;
 
+import com.hnlrate.backend.dto.PlayerRatingAdminDTO;
 import com.hnlrate.backend.model.PlayerRating;
 import com.hnlrate.backend.repository.PlayerRatingRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,18 @@ public class PlayerRatingService {
 
     public PlayerRating save(PlayerRating playerRating) {
         return playerRatingRepository.save(playerRating);
+    }
+
+    public Optional<PlayerRating> getById(Integer id) {
+        return playerRatingRepository.findById(id);
+    }
+
+    public List<PlayerRatingAdminDTO> getAllForAdmin() {
+        return playerRatingRepository.findAllAsDTO();
+    }
+
+    public long count() {
+        return playerRatingRepository.count();
     }
 
     public void delete(Integer id) {

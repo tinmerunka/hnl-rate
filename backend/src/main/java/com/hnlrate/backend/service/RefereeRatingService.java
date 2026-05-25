@@ -31,6 +31,10 @@ public class RefereeRatingService {
         return refereeRatingRepository.save(refereeRating);
     }
 
+    public long count() {
+        return refereeRatingRepository.count();
+    }
+
     public void delete(Integer id) {
         refereeRatingRepository.deleteById(id);
     }
