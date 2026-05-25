@@ -41,6 +41,10 @@ public class MatchRatingService {
         return matchRatingRepository.findAllCommentsAsDTO();
     }
 
+    public long count() {
+        return matchRatingRepository.count();
+    }
+
     public void delete(Integer id) {
         matchRatingRepository.deleteById(id);
     }

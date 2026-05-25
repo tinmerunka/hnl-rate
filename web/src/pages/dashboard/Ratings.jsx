@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
-  getRatings, getRefereeRatings, getAtmosphereRatings,
-  deleteRating, deleteRefereeRating, deleteAtmosphereRating,
+  getRatings, getRefereeRatings, getAtmosphereRatings, getPlayerRatings,
+  deleteRating, deleteRefereeRating, deleteAtmosphereRating, deletePlayerRating,
 } from '../../services/ratingAdminService';
 import Modal from '../../components/Modal';
 
@@ -49,6 +49,7 @@ function MatchList({ groups, onSelect }) {
                 <th className="text-center text-[11px] font-semibold text-white/25 px-4 py-3 w-24">Utakmica</th>
                 <th className="text-center text-[11px] font-semibold text-white/25 px-4 py-3 w-20">Sudac</th>
                 <th className="text-center text-[11px] font-semibold text-white/25 px-4 py-3 w-24">Atmosfera</th>
+                <th className="text-center text-[11px] font-semibold text-white/25 px-4 py-3 w-20">Igrači</th>
                 <th className="w-8 px-4 py-3" />
               </tr>
             </thead>
@@ -73,6 +74,11 @@ function MatchList({ groups, onSelect }) {
                   <td className="px-4 py-3.5 text-center">
                     <span className={`text-[13px] font-semibold ${g.atmosphereRatings.length ? 'text-white' : 'text-white/20'}`}>
                       {g.atmosphereRatings.length || '—'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3.5 text-center">
+                    <span className={`text-[13px] font-semibold ${g.playerRatings.length ? 'text-white' : 'text-white/20'}`}>
+                      {g.playerRatings.length || '—'}
                     </span>
                   </td>
                   <td className="px-4 py-3.5 text-right"><span className="text-white/20 text-sm">→</span></td>
@@ -156,12 +162,101 @@ function RatingTable({ ratings, onDelete }) {
   );
 }
 
+/* ── Player rating table ────────────────────────────────────────── */
+
+function PlayerRatingTable({ ratings, onDelete }) {
+  const [search, setSearch] = useState('');
+  const filtered = ratings.filter((r) =>
+    !search ||
+    r.username.toLowerCase().includes(search.toLowerCase()) ||
+    r.playerName.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <>
+      <div className="flex items-center gap-2 mb-4">
+        <input type="text" placeholder="Pretraži po korisniku ili igraču..." value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-72 bg-white/[0.05] border border-white/[0.08] focus:border-hnl-red rounded-lg px-3 py-1.5 text-sm text-white outline-none transition-colors placeholder:text-white/20" />
+        <span className="ml-auto text-[12px] text-white/25">{filtered.length} ocjena</span>
+      </div>
+
+      <div className="bg-hnl-card rounded-xl border border-white/[0.06] overflow-hidden">
+        {filtered.length === 0 ? (
+          <div className="py-12 text-center text-white/25 text-sm">
+            {search ? 'Nema ocjena za uneseni filter.' : 'Nema ocjena igrača.'}
+          </div>
+        ) : (
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-white/[0.06]">
+                <th className="text-left text-[11px] font-semibold text-white/25 px-5 py-3">Korisnik</th>
+                <th className="text-left text-[11px] font-semibold text-white/25 px-4 py-3">Igrač</th>
+                <th className="text-left text-[11px] font-semibold text-white/25 px-4 py-3 w-20">Ocjena</th>
+                <th className="text-left text-[11px] font-semibold text-white/25 px-4 py-3 w-24">Oznake</th>
+                <th className="text-left text-[11px] font-semibold text-white/25 px-4 py-3">Komentar</th>
+                <th className="text-left text-[11px] font-semibold text-white/25 px-4 py-3 w-28">Datum</th>
+                <th className="w-24 px-4 py-3" />
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((r, i) => (
+                <tr key={r.id}
+                  className={`${i !== filtered.length - 1 ? 'border-b border-white/[0.04]' : ''} hover:bg-white/[0.02] transition-colors`}>
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-full bg-white/[0.07] flex items-center justify-center text-[12px] font-bold text-white/50 shrink-0 select-none">
+                        {r.username[0].toUpperCase()}
+                      </div>
+                      <p className="text-[13px] font-semibold text-white">{r.username}</p>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <p className="text-[13px] text-white/80">{r.playerName}</p>
+                  </td>
+                  <td className="px-4 py-3.5"><RatingBadge rating={r.rating} /></td>
+                  <td className="px-4 py-3.5">
+                    <div className="flex gap-1">
+                      {r.bestPlayer && (
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-400">MVP</span>
+                      )}
+                      {r.worstPlayer && (
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-hnl-red/10 text-hnl-red">Najgori</span>
+                      )}
+                      {!r.bestPlayer && !r.worstPlayer && <span className="text-white/20 text-sm">—</span>}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3.5 max-w-xs">
+                    {r.comment
+                      ? <p className="text-[13px] text-white/55 line-clamp-2 leading-5">{r.comment}</p>
+                      : <span className="text-white/20 text-sm">—</span>}
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <p className="text-[12px] text-white/30">{fmtDate(r.createdAt)}</p>
+                  </td>
+                  <td className="px-4 py-3.5 text-right">
+                    <button onClick={() => onDelete(r)}
+                      className="text-[12px] font-medium px-3 py-1 rounded-lg border border-white/10 text-white/35 hover:text-hnl-red hover:border-hnl-red/25 hover:bg-hnl-red/5 transition-all cursor-pointer">
+                      Ukloni
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </>
+  );
+}
+
 /* ── Match detail ───────────────────────────────────────────────── */
 
 const TABS = [
   { id: 'match', label: 'Ocjena utakmice' },
   { id: 'referee', label: 'Sudac' },
   { id: 'atmosphere', label: 'Atmosfera' },
+  { id: 'players', label: 'Igrači' },
 ];
 
 function avg(ratings) {
@@ -179,12 +274,14 @@ function MatchDetail({ group, onBack, onDeleted }) {
     match: group.matchRatings,
     referee: group.refereeRatings,
     atmosphere: group.atmosphereRatings,
+    players: group.playerRatings,
   };
 
   const deleteFns = {
     match: deleteRating,
     referee: deleteRefereeRating,
     atmosphere: deleteAtmosphereRating,
+    players: deletePlayerRating,
   };
 
   const handleDelete = async () => {
@@ -232,6 +329,7 @@ function MatchDetail({ group, onBack, onDeleted }) {
           { label: 'Utakmica', count: group.matchRatings.length, value: matchAvg },
           { label: 'Sudac', count: group.refereeRatings.length, value: refAvg },
           { label: 'Atmosfera', count: group.atmosphereRatings.length, value: atmAvg },
+          { label: 'Igrači', count: group.playerRatings.length, value: null },
         ].map((s, i) => (
           <div key={s.label} className="flex items-center gap-6">
             {i > 0 && <div className="w-px h-8 bg-white/[0.06]" />}
@@ -270,11 +368,19 @@ function MatchDetail({ group, onBack, onDeleted }) {
       </div>
 
       {/* Tab content */}
-      <RatingTable
-        key={activeTab}
-        ratings={tabRatings[activeTab]}
-        onDelete={(r) => setDeleteTarget({ type: activeTab, rating: r })}
-      />
+      {activeTab === 'players' ? (
+        <PlayerRatingTable
+          key="players"
+          ratings={tabRatings.players}
+          onDelete={(r) => setDeleteTarget({ type: 'players', rating: r })}
+        />
+      ) : (
+        <RatingTable
+          key={activeTab}
+          ratings={tabRatings[activeTab]}
+          onDelete={(r) => setDeleteTarget({ type: activeTab, rating: r })}
+        />
+      )}
 
       {deleteTarget && (
         <Modal title="Ukloni ocjenu" onClose={() => setDeleteTarget(null)}
@@ -304,6 +410,7 @@ export default function Ratings() {
   const [allMatchRatings, setAllMatchRatings] = useState([]);
   const [allRefereeRatings, setAllRefereeRatings] = useState([]);
   const [allAtmosphereRatings, setAllAtmosphereRatings] = useState([]);
+  const [allPlayerRatings, setAllPlayerRatings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedMatchId, setSelectedMatchId] = useState(null);
@@ -312,12 +419,13 @@ export default function Ratings() {
     setLoading(true);
     setError('');
     try {
-      const [mr, rr, ar] = await Promise.all([
-        getRatings(), getRefereeRatings(), getAtmosphereRatings(),
+      const [mr, rr, ar, pr] = await Promise.all([
+        getRatings(), getRefereeRatings(), getAtmosphereRatings(), getPlayerRatings(),
       ]);
       setAllMatchRatings(mr);
       setAllRefereeRatings(rr);
       setAllAtmosphereRatings(ar);
+      setAllPlayerRatings(pr);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -327,12 +435,12 @@ export default function Ratings() {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  // Build groups keyed by matchId — union of all three rating types
+  // Build groups keyed by matchId — union of all four rating types
   const groups = useMemo(() => {
     const map = {};
     const ensure = (matchId, label, date) => {
       if (!map[matchId]) {
-        map[matchId] = { matchId, matchLabel: label, matchDate: date, matchRatings: [], refereeRatings: [], atmosphereRatings: [] };
+        map[matchId] = { matchId, matchLabel: label, matchDate: date, matchRatings: [], refereeRatings: [], atmosphereRatings: [], playerRatings: [] };
       }
     };
     allMatchRatings.forEach((r) => {
@@ -347,8 +455,12 @@ export default function Ratings() {
       ensure(r.matchId, r.matchLabel, r.matchDate);
       map[r.matchId].atmosphereRatings.push(r);
     });
+    allPlayerRatings.forEach((r) => {
+      ensure(r.matchId, r.matchLabel, r.matchDate);
+      map[r.matchId].playerRatings.push(r);
+    });
     return Object.values(map).sort((a, b) => (b.matchDate ?? '').localeCompare(a.matchDate ?? ''));
-  }, [allMatchRatings, allRefereeRatings, allAtmosphereRatings]);
+  }, [allMatchRatings, allRefereeRatings, allAtmosphereRatings, allPlayerRatings]);
 
   const selectedGroup = selectedMatchId != null
     ? groups.find((g) => g.matchId === selectedMatchId) ?? null
@@ -358,6 +470,7 @@ export default function Ratings() {
     if (type === 'match') setAllMatchRatings((p) => p.filter((r) => r.id !== deletedId));
     if (type === 'referee') setAllRefereeRatings((p) => p.filter((r) => r.id !== deletedId));
     if (type === 'atmosphere') setAllAtmosphereRatings((p) => p.filter((r) => r.id !== deletedId));
+    if (type === 'players') setAllPlayerRatings((p) => p.filter((r) => r.id !== deletedId));
   }, []);
 
   return (

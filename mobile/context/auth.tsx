@@ -2,6 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { getUserProfile, revokeRefreshToken } from '@/services/api';
 import { tokenStore } from '@/services/tokenStore';
+import { registerForPushNotifications } from '@/services/notifications';
 
 export interface Club {
   id: number;
@@ -217,6 +218,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(accessToken);
     const profile = await getUserProfile(accessToken);
     setUserProfile(profile);
+    registerForPushNotifications(accessToken).catch(() => {});
   }
 
   async function logout() {

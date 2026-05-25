@@ -31,6 +31,10 @@ public class AtmosphereRatingService {
         return atmosphereRatingRepository.save(atmosphereRating);
     }
 
+    public long count() {
+        return atmosphereRatingRepository.count();
+    }
+
     public void delete(Integer id) {
         atmosphereRatingRepository.deleteById(id);
     }

@@ -33,6 +33,10 @@ public class UserService {
         return userRepository.findByUsername(username);
     }
 
+    public long count() {
+        return userRepository.count();
+    }
+
     public User save(User user) {
         return userRepository.save(user);
     }

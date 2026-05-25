@@ -8,11 +8,12 @@ import com.hnlrate.backend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 import java.util.*;
+
 import java.util.stream.Collectors;
 
 @RestController
@@ -25,6 +26,17 @@ public class UserController {
     private final RefereeRatingRepository refereeRatingRepository;
     private final AtmosphereRatingRepository atmosphereRatingRepository;
     private final PlayerRatingRepository playerRatingRepository;
+
+    @PutMapping("/push-token")
+    public ResponseEntity<Void> updatePushToken(@RequestBody Map<String, String> body, Authentication auth) {
+        String token = body.get("fcmToken");
+        if (token == null || token.isBlank()) return ResponseEntity.badRequest().build();
+        userService.getByUsername(auth.getName()).ifPresent(user -> {
+            user.setFcmToken(token);
+            userService.save(user);
+        });
+        return ResponseEntity.ok().build();
+    }
 
     @GetMapping("/me")
     public ResponseEntity<UserProfileDTO> getMe(Authentication auth) {

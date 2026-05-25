@@ -1,7 +1,10 @@
+import '@/firebaseMessagingService';
 import { AuthProvider, useAuth } from '@/context/auth';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { getApp } from '@react-native-firebase/app';
+import { getMessaging, onNotificationOpenedApp, getInitialNotification } from '@react-native-firebase/messaging';
 
 function RootNavigator() {
   const { token, loading } = useAuth();
@@ -20,6 +23,23 @@ function RootNavigator() {
       router.replace('/(tabs)');
     }
   }, [token, loading, segments]);
+
+  useEffect(() => {
+    const msg = getMessaging(getApp());
+
+    const unsubscribe = onNotificationOpenedApp(msg, remoteMessage => {
+      const matchId = remoteMessage.data?.matchId;
+      if (matchId) router.push(`/match/${matchId}`);
+    });
+
+    getInitialNotification(msg).then(remoteMessage => {
+      if (remoteMessage?.data?.matchId) {
+        router.push(`/match/${remoteMessage.data.matchId}`);
+      }
+    });
+
+    return unsubscribe;
+  }, []);
 
   return null;
 }
