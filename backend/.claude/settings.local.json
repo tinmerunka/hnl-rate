@@ -9,7 +9,8 @@
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\meri4\\\\Desktop\\\\OICAR\\\\hnl-rate\\\\backend\\\\src\\\\main\\\\java\\\\com\\\\hnlrate\\\\backend\" -Recurse -Filter \"*.java\")",
       "Bash(Select-Object -ExpandProperty FullName)",
       "Bash(Sort-Object)",
-      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\User\\\\source\\\\repos\\\\OICAR\\\\hnl-rate\\\\web\" -Recurse -Directory)"
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\User\\\\source\\\\repos\\\\OICAR\\\\hnl-rate\\\\web\" -Recurse -Directory)",
+      "Bash(./mvnw test *)"
     ]
   }
 }
