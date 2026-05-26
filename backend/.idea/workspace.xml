@@ -5,45 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="fe0e2fe3-0439-41a1-bc43-eb72b1455436" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/resources/firebase-service-account.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.claude/settings.local.json" beforeDir="false" afterPath="$PROJECT_DIR$/.claude/settings.local.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CLAUDE.md" beforeDir="false" afterPath="$PROJECT_DIR$/CLAUDE.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/controller/AdminController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/controller/AdminController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/controller/UserController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/model/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/model/User.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/repository/PlayerRatingRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/repository/PlayerRatingRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/repository/RefereeRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/repository/RefereeRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/AtmosphereRatingService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/AtmosphereRatingService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/MatchRatingService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/MatchRatingService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/PlayerRatingService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/PlayerRatingService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/RefereeRatingService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/RefereeRatingService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/SyncService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/SyncService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/UserService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/controller/AdminController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/controller/AdminController.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/controller/UserController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/controller/UserController.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/model/User.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/model/User.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/repository/PlayerRatingRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/repository/PlayerRatingRepository.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/repository/RefereeRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/repository/RefereeRepository.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/service/AtmosphereRatingService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/service/AtmosphereRatingService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/service/MatchRatingService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/service/MatchRatingService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/service/PlayerRatingService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/service/PlayerRatingService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/service/RefereeRatingService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/service/RefereeRatingService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/service/UserService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/hnlrate/backend/service/UserService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mobile/.expo/types/router.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/.expo/types/router.d.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mobile/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/app.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mobile/app/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/app/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mobile/constants/config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/constants/config.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mobile/context/auth.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/context/auth.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mobile/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mobile/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../web/src/pages/dashboard/Dashboard.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../web/src/pages/dashboard/Dashboard.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../web/src/pages/dashboard/Ratings.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/../web/src/pages/dashboard/Ratings.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../web/src/services/ratingAdminService.js" beforeDir="false" afterPath="$PROJECT_DIR$/../web/src/services/ratingAdminService.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -53,10 +17,23 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;FlorijanSabljic&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/tinmerunka/hnl-rate.git&quot;,
+    &quot;accountId&quot;: &quot;c8a98ac1-a615-486d-a5e4-2b2136b0d727&quot;
+  }
+}</component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 7
 }</component>
+  <component name="ProjectId" id="3EEIWNgNJUAyRz4TUk97fMuw0b1" />
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
   </component>
@@ -66,6 +43,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "JUnit.JwtServiceTest.executor": "Run",
     "RequestMappingsPanelOrder0": "0",
     "RequestMappingsPanelOrder1": "1",
     "RequestMappingsPanelWidth0": "75",
@@ -75,7 +53,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "Spring Boot.BackendApplication.executor": "Run",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "feature/spec-review",
+    "git-widget-placeholder": "feature/tests",
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/User/source/repos/OICAR/hnl-rate/backend/src/main/resources",
@@ -92,7 +70,22 @@
       <recent name="C:\Users\User\source\repos\OICAR\hnl-rate\backend\src\main\resources" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Spring Boot.BackendApplication">
+    <configuration name="JwtServiceTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="backend" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.hnlrate.backend.security.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.hnlrate.backend.security" />
+      <option name="MAIN_CLASS_NAME" value="com.hnlrate.backend.security.JwtServiceTest" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="BackendApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
       <module name="backend" />
@@ -118,6 +111,11 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JUnit.JwtServiceTest" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
@@ -135,6 +133,8 @@
       <option name="presentableId" value="Default" />
       <updated>1778849071486</updated>
       <workItem from="1778849072766" duration="2566000" />
+      <workItem from="1779737339170" duration="102000" />
+      <workItem from="1779786251773" duration="1844000" />
     </task>
     <servers />
   </component>
