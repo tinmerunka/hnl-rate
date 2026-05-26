@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from '@/context/auth';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { getApp } from '@react-native-firebase/app';
 import { getMessaging, onNotificationOpenedApp, getInitialNotification } from '@react-native-firebase/messaging';
 
@@ -46,16 +47,18 @@ function RootNavigator() {
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <RootNavigator />
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="login" />
-        <Stack.Screen name="register" />
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="club/[id]" options={{ headerShown: false }} />
-      </Stack>
-      <StatusBar style="light" backgroundColor="#000000" />
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <RootNavigator />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="login" />
+          <Stack.Screen name="register" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="club/[id]" options={{ headerShown: false }} />
+        </Stack>
+        <StatusBar style="light" backgroundColor="#000000" />
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }

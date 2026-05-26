@@ -22,9 +22,15 @@ public class NotificationService {
     private final UserRepository userRepository;
 
     public void sendMatchFinishedNotification(Match match) {
+        Integer homeId = match.getHomeClub() != null ? match.getHomeClub().getId() : null;
+        Integer awayId = match.getAwayClub() != null ? match.getAwayClub().getId() : null;
+
         List<String> tokens = userRepository.findAll().stream()
                 .filter(u -> u.getFcmToken() != null && !u.getFcmToken().isBlank())
                 .filter(u -> !Boolean.TRUE.equals(u.getBlocked()))
+                .filter(u -> u.getFavoriteClub() != null &&
+                        (u.getFavoriteClub().getId().equals(homeId) ||
+                         u.getFavoriteClub().getId().equals(awayId)))
                 .map(com.hnlrate.backend.model.User::getFcmToken)
                 .toList();
 

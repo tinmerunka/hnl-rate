@@ -10,6 +10,8 @@
       "Bash(Select-Object -ExpandProperty FullName)",
       "Bash(Sort-Object)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\User\\\\source\\\\repos\\\\OICAR\\\\hnl-rate\\\\web\" -Recurse -Directory)",
+      "Bash(Select-String -Path \"C:\\\\Users\\\\User\\\\source\\\\repos\\\\OICAR\\\\hnl-rate\\\\mobile\\\\services\\\\api.ts\" -Pattern \"export\")",
+      "Bash(Select-Object -Last 10)"
       "Bash(./mvnw test *)"
     ]
   }

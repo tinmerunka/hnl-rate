@@ -135,6 +135,54 @@ export interface MatchRatings {
   userMatchRating: number | null;
 }
 
+export interface RatedMatch {
+  matchId: number;
+  homeClub: string;
+  awayClub: string;
+  result: string | null;
+  round: number;
+  avgRating: number;
+  voteCount: number;
+}
+
+export interface RatedPlayer {
+  playerId: number;
+  firstName: string;
+  lastName: string;
+  clubName: string;
+  position: string;
+  avgRating: number;
+  voteCount: number;
+}
+
+export interface RatedReferee {
+  refereeId: number;
+  firstName: string;
+  lastName: string;
+  avgRating: number;
+  voteCount: number;
+}
+
+export interface RatedAtmosphere {
+  matchId: number;
+  homeClub: string;
+  awayClub: string;
+  result: string | null;
+  round: number;
+  avgRating: number;
+  voteCount: number;
+}
+
+export interface TopRated {
+  bestMatch: RatedMatch | null;
+  worstMatch: RatedMatch | null;
+  topPlayersByPosition: RatedPlayer[];
+  bestReferee: RatedReferee | null;
+  worstReferee: RatedReferee | null;
+  bestAtmosphere: RatedAtmosphere | null;
+  worstAtmosphere: RatedAtmosphere | null;
+}
+
 export type StatPair = { home: number | null; away: number | null };
 
 export interface MatchStatistics {

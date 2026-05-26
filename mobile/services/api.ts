@@ -216,3 +216,7 @@ export async function getMatchLineup(
   }
   return response.json();
 }
+
+export async function getTopRated(token: string): Promise<TopRated> {
+  return authFetch('/api/top-rated', token);
+}

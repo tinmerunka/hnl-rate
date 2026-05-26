@@ -5,9 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="fe0e2fe3-0439-41a1-bc43-eb72b1455436" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.claude/PLAN.md" beforeDir="false" afterPath="$PROJECT_DIR$/.claude/PLAN.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.claude/settings.local.json" beforeDir="false" afterPath="$PROJECT_DIR$/.claude/settings.local.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CLAUDE.md" beforeDir="false" afterPath="$PROJECT_DIR$/CLAUDE.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/NotificationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/NotificationService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/SyncService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hnlrate/backend/service/SyncService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mobile/app/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/app/_layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mobile/context/auth.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/context/auth.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mobile/services/api.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../mobile/services/api.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -17,23 +23,23 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
-  <component name="GitHubPullRequestSearchHistory">{
-  &quot;lastFilter&quot;: {
-    &quot;state&quot;: &quot;OPEN&quot;,
-    &quot;assignee&quot;: &quot;FlorijanSabljic&quot;
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "DujeOpacak"
   }
-}</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/tinmerunka/hnl-rate.git&quot;,
-    &quot;accountId&quot;: &quot;c8a98ac1-a615-486d-a5e4-2b2136b0d727&quot;
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/tinmerunka/hnl-rate.git",
+    "accountId": "e3bef959-f1b2-4274-803b-3dcee04a5dc0"
   }
-}</component>
+}]]></component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 7
 }</component>
-  <component name="ProjectId" id="3EEIWNgNJUAyRz4TUk97fMuw0b1" />
+  <component name="ProjectId" id="3EFrDWtKyE1KDqENdC0dBpmTZ4g" />
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
   </component>
@@ -53,7 +59,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "Spring Boot.BackendApplication.executor": "Run",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "feature/tests",
+    "git-widget-placeholder": "fix/push-notifications",
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/User/source/repos/OICAR/hnl-rate/backend/src/main/resources",
@@ -133,8 +139,7 @@
       <option name="presentableId" value="Default" />
       <updated>1778849071486</updated>
       <workItem from="1778849072766" duration="2566000" />
-      <workItem from="1779737339170" duration="102000" />
-      <workItem from="1779786251773" duration="1844000" />
+      <workItem from="1779785044022" duration="4577000" />
     </task>
     <servers />
   </component>
