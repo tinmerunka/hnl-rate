@@ -16,10 +16,10 @@ function RootNavigator() {
     if (loading) return;
     const first = segments[0] as string | undefined;
     const inProtectedArea = first === '(tabs)' || first === 'club' || first === 'match';
-    const onAuthScreen = first === undefined || first === 'login' || first === 'register';
+    const onAuthScreen = first === undefined || first === 'login' || first === 'register' || first === 'forgot-password' || first === 'reset-password';
 
     if (!token && inProtectedArea) {
-      router.replace('/');
+      router.replace('/login');
     } else if (token && onAuthScreen) {
       router.replace('/(tabs)');
     }
@@ -54,6 +54,8 @@ export default function RootLayout() {
           <Stack.Screen name="index" />
           <Stack.Screen name="login" />
           <Stack.Screen name="register" />
+          <Stack.Screen name="forgot-password" />
+          <Stack.Screen name="reset-password" />
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="club/[id]" options={{ headerShown: false }} />
         </Stack>

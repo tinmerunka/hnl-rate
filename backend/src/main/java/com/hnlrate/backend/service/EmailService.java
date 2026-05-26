@@ -19,7 +19,9 @@ public class EmailService {
         message.setSubject("HNL Rate — Reset lozinke");
         message.setText(
             "Zatražili ste reset lozinke za vaš HNL Rate account.\n\n" +
-            "Kliknite na link ispod da postavite novu lozinku (vrijedi 15 minuta):\n\n" +
+            "Vaš kod za reset lozinke (vrijedi 15 minuta):\n\n" +
+            "  " + token + "\n\n" +
+            "Unesite ovaj kod u mobilnoj aplikaciji ili kliknite na link ispod (web):\n\n" +
             resetLink + "\n\n" +
             "Ako niste zatražili reset lozinke, ignorirajte ovaj email."
         );
