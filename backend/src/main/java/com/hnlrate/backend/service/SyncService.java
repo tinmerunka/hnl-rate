@@ -305,11 +305,6 @@ public class SyncService {
             name = name.substring(0, name.length() - 1).trim();
         }
 
-        // Skip abbreviated names like "A. Čulina" or "Čulina A." — abbreviation = single letter + dot
-        boolean hasAbbreviation = name.matches(".*\\b[A-ZČĆŽŠĐ]\\..*(\\s+.*)?") ||
-                                  name.matches(".*\\s[A-ZČĆŽŠĐ]\\.$");
-        if (hasAbbreviation) return null;
-
         int lastSpace = name.lastIndexOf(' ');
         if (lastSpace < 0) return null;
 
@@ -318,9 +313,24 @@ public class SyncService {
 
         if (firstName.isBlank() || lastName.isBlank()) return null;
 
-        String normFirst = normalizeForLookup(firstName);
         String normLast = normalizeForLookup(lastName);
 
+        // api-football often returns abbreviated first names (e.g. "D. Strukan")
+        // → match by last name only to avoid creating duplicates alongside full-name entries
+        boolean abbreviated = firstName.matches("[A-ZČĆŽŠĐ]\\.");
+        if (abbreviated) {
+            return refereeRepository.findAll().stream()
+                    .filter(r -> normalizeForLookup(r.getLastName()).equals(normLast))
+                    .findFirst()
+                    .orElseGet(() -> {
+                        Referee r = new Referee();
+                        r.setFirstName(firstName);
+                        r.setLastName(lastName);
+                        return refereeRepository.save(r);
+                    });
+        }
+
+        String normFirst = normalizeForLookup(firstName);
         return refereeRepository.findAll().stream()
                 .filter(r -> normalizeForLookup(r.getFirstName()).equals(normFirst)
                           && normalizeForLookup(r.getLastName()).equals(normLast))

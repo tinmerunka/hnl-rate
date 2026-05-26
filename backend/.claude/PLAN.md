@@ -56,7 +56,7 @@ Backend ima solidne temelje (modeli, auth, JWT, CRUD admin endpointi, lineup syn
 - [x] `POST /api/admin/sync/matches`
 - [x] `POST /api/admin/sync/players`
 - [x] `GET /api/matches/{id}/lineup` — lazy sync postave pri prvom dohvatu
-- [ ] `@EnableScheduling` + dnevni `@Scheduled` job za automatski sync
+- [x] `@EnableScheduling` + dnevni `@Scheduled` job za automatski sync (PR #33)
 
 ### Faza 2 — Core read endpointi ✅
 
@@ -101,7 +101,7 @@ Backend ima solidne temelje (modeli, auth, JWT, CRUD admin endpointi, lineup syn
 
 - [x] `GET  /api/admin/users` — svi korisnici
 - [x] `PUT  /api/admin/users/{id}/block` — blokiraj/odblokiraj korisnika
-- [ ] `GET  /api/admin/ratings` — sve ocjene (moderacija)
+- [x] `GET  /api/admin/ratings` + moderacija svih tipova ocjena (match, sudac, atmosfera, igrač, komentari)
 
 ---
 

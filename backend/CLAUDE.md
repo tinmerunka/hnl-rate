@@ -131,6 +131,7 @@ src/main/java/com/hnlrate/backend/
 | GET    | /api/admin/player-ratings                  | Da (ADMIN) | Lista svih ocjena igrača |
 | DELETE | /api/admin/player-ratings/{id}             | Da (ADMIN) | Obriši ocjenu igrača |
 | GET    | /api/admin/stats                           | Da (ADMIN) | Statistike: aktivne sesije, totalUsers, totalRatings |
+| GET    | /api/top-rated                             | Da         | Najbolja/najgora utakmica, igrači po pozicijama, sudac, atmosfera sezone |
 
 ## Security
 
@@ -180,6 +181,7 @@ GET /standings?league={id}&season=2025      → ljestvica
 - [x] `@Scheduled` dnevni job za automatski sync (PR #33)
 - [x] Match statistike (PR #34)
 - [x] Forgot/reset password
+- [x] Push notifikacije (FCM) — šalju se korisnicima čiji je omiljeni klub domaćin ili gost završene utakmice
 
 ### Web admin panel — implementirano ✓
 - [x] Login/logout administratora
@@ -207,7 +209,6 @@ GET /standings?league={id}&season=2025      → ljestvica
 | # | Što | Gdje nedostaje | Težina | Status |
 |---|-----|----------------|--------|--------|
 | 1 | **Google OAuth** | Mobile + Backend | Srednja | Preskočeno (school projekt, kompleksno za tim) |
-| 2 | **Push notifikacije** | Backend (FCM slanje) + Mobile (primanje) | Velika | TODO |
 
 ## Napomene
 
