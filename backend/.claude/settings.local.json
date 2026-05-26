@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.api-football.com)",
+      "WebFetch(domain:api-sports.io)",
+      "WebSearch",
+      "Bash(./mvnw compile:*)",
+      "Bash(./mvnw clean *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\meri4\\\\Desktop\\\\OICAR\\\\hnl-rate\\\\backend\\\\src\\\\main\\\\java\\\\com\\\\hnlrate\\\\backend\" -Recurse -Filter \"*.java\")",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Sort-Object)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\User\\\\source\\\\repos\\\\OICAR\\\\hnl-rate\\\\web\" -Recurse -Directory)",
+      "Bash(Select-String -Path \"C:\\\\Users\\\\User\\\\source\\\\repos\\\\OICAR\\\\hnl-rate\\\\mobile\\\\services\\\\api.ts\" -Pattern \"export\")",
+      "Bash(Select-Object -Last 10)"
+      "Bash(./mvnw test *)"
+    ]
+  }
+}

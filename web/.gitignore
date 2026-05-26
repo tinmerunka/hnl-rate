@@ -1,0 +1,14 @@
+node_modules/
+.env
+build/
+# Claude Code
+.claude
+CLAUDE.md
+claude.md
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

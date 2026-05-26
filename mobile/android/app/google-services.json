@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1021006979250",
+    "project_id": "hnl-rate-fac35",
+    "storage_bucket": "hnl-rate-fac35.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1021006979250:android:56ab1873bef49950e8e9ab",
+        "android_client_info": {
+          "package_name": "com.hnlrate.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJ-dvwocUsKyKRp804ZpsNpBCV9gjGygk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
