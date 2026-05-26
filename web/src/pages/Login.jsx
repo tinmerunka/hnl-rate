@@ -20,6 +20,10 @@ function Login() {
 
     try {
       const data = await loginService(username, password);
+      if (data.role !== 'ADMIN') {
+        setError('Pristup odbijen. Samo administratori mogu pristupiti ovoj stranici.');
+        return;
+      }
       login(data);
       navigate('/dashboard');
     } catch (err) {

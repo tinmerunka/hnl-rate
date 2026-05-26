@@ -119,7 +119,7 @@ export default function ProfileScreen() {
       {/* Logout */}
       <TouchableOpacity
         style={s.logoutBtn}
-        onPress={() => { router.replace('/'); logout(); }}
+        onPress={() => logout()}
         activeOpacity={0.8}>
         <Ionicons name="log-out-outline" size={18} color={T.red} />
         <Text style={s.logoutText}>Odjava</Text>

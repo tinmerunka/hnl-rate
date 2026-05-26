@@ -1,6 +1,5 @@
 import { FormField } from '@/components/FormField';
 import API_BASE_URL from '@/constants/config';
-import { useAuth } from '@/context/auth';
 import { AuthHeader } from '@/features/auth/AuthHeader';
 import { authStyles as s } from '@/features/auth/styles';
 import { useRouter } from 'expo-router';
@@ -17,38 +16,45 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export default function LoginScreen() {
+export default function ResetPasswordScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { login } = useAuth();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [token, setToken] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  async function handleLogin() {
-    if (!username.trim() || !password.trim()) {
+  async function handleReset() {
+    if (!token.trim() || !newPassword.trim()) {
       Alert.alert('Greška', 'Molimo ispunite sva polja.');
       return;
     }
 
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      const response = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username.trim(), password }),
+        body: JSON.stringify({ token: token.trim(), newPassword }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        Alert.alert('Prijava neuspješna', data.message ?? 'Neispravni podaci.');
+        const text = await response.text();
+        let message = 'Reset lozinke nije uspio.';
+        try {
+          const data = JSON.parse(text);
+          message = data.message ?? data.error ?? message;
+        } catch {
+          message = text || message;
+        }
+        Alert.alert('Greška', message);
         return;
       }
 
-      const token = data.accessToken ?? data.token;
-      await login(token, data.refreshToken);
-      router.replace('/(tabs)');
+      Alert.alert(
+        'Lozinka promijenjena',
+        'Vaša lozinka je uspješno resetirana. Možete se prijaviti.',
+        [{ text: 'Prijavi se', onPress: () => router.replace('/login') }],
+      );
     } catch {
       Alert.alert(
         'Greška',
@@ -70,49 +76,44 @@ export default function LoginScreen() {
         showsVerticalScrollIndicator={false}
       >
         <AuthHeader
-          title="Dobrodošli natrag."
-          subtitle="Nastavi gdje si stao — ocjenjuj utakmice, prati svoj klub."
+          title="Postavi novu lozinku."
+          subtitle="Unesite 6-znamenkasti kod koji ste primili na email i odaberite novu lozinku."
         />
 
-        <View style={s.fields}>
+        <View style={[s.fields, { marginBottom: 32 }]}>
           <FormField
-            label="Korisničko ime"
-            value={username}
-            onChangeText={setUsername}
-            placeholder="korisničko_ime"
+            label="Kod iz emaila"
+            value={token}
+            onChangeText={setToken}
+            placeholder="123456"
+            keyboardType="number-pad"
           />
           <FormField
-            label="Lozinka"
-            value={password}
-            onChangeText={setPassword}
+            label="Nova lozinka"
+            value={newPassword}
+            onChangeText={setNewPassword}
             placeholder="••••••••"
             secureTextEntry
           />
-          <TouchableOpacity style={s.forgotWrap} onPress={() => router.push('/forgot-password')}>
-            <Text style={s.forgot}>Zaboravljena lozinka?</Text>
-          </TouchableOpacity>
         </View>
-
-        <View style={{ flex: 1 }} />
 
         <View style={s.cta}>
           <TouchableOpacity
             style={[s.btnPrimary, loading && s.btnDisabled]}
-            onPress={handleLogin}
+            onPress={handleReset}
             disabled={loading}
             activeOpacity={0.85}
           >
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={s.btnPrimaryText}>Prijavi se</Text>
+              <Text style={s.btnPrimaryText}>Resetiraj lozinku</Text>
             )}
           </TouchableOpacity>
 
           <View style={s.switchRow}>
-            <Text style={s.switchText}>Novi si ovdje? </Text>
-            <TouchableOpacity onPress={() => router.replace('/register')}>
-              <Text style={s.switchLink}>Kreiraj račun</Text>
+            <TouchableOpacity onPress={() => router.replace('/login')}>
+              <Text style={s.switchLink}>Natrag na prijavu</Text>
             </TouchableOpacity>
           </View>
         </View>

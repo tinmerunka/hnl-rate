@@ -59,7 +59,7 @@ public class AuthService {
         String accessToken = jwtService.generateToken(user.getUsername());
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
 
-        return new AuthResponseDTO(accessToken, refreshToken.getToken());
+        return new AuthResponseDTO(accessToken, refreshToken.getToken(), user.getRole().name());
     }
 
     public AuthResponseDTO refresh(RefreshTokenRequestDTO dto) {
@@ -79,7 +79,7 @@ public class AuthService {
         RefreshToken newRefreshToken = refreshTokenService.rotate(refreshToken);
         String newAccessToken = jwtService.generateToken(newRefreshToken.getUser().getUsername());
 
-        return new AuthResponseDTO(newAccessToken, newRefreshToken.getToken());
+        return new AuthResponseDTO(newAccessToken, newRefreshToken.getToken(), newRefreshToken.getUser().getRole().name());
     }
 
     public void logout(RefreshTokenRequestDTO dto) {
@@ -99,7 +99,8 @@ public class AuthService {
             passwordResetTokenRepository.deleteByUser_Id(user.getId());
 
             PasswordResetToken resetToken = new PasswordResetToken();
-            resetToken.setToken(UUID.randomUUID().toString());
+            String code = String.format("%06d", new java.util.Random().nextInt(1_000_000));
+            resetToken.setToken(code);
             resetToken.setUser(user);
             resetToken.setExpiresAt(LocalDateTime.now().plusMinutes(15));
             passwordResetTokenRepository.save(resetToken);
